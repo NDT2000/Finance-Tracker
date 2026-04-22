@@ -7,6 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.security.Key;
 import java.util.Date;
@@ -18,7 +19,11 @@ import java.util.function.Function;
 public class JwtService {
 
     // Secret Key
-    private static final String SECRET = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+    @Value("${application.security.jwt.secret}")
+    private String secretKey;
+
+    @Value("${application.security.jwt.expiration}")
+    private long jwtExpiration;
 
     // Generate token for a user
     public String generateToken(UserDetails userDetails) {
@@ -30,7 +35,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -69,7 +74,7 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = hexStringToByteArray(SECRET);
+        byte[] keyBytes = hexStringToByteArray(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
