@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.nayan.finance_tracker.repository.UserRepository;
+import com.nayan.finance_tracker.security.JwtAuthFilter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final UserRepository userRepository;
+    private final JwtAuthFilter jwtAuthFilter;
 
     // How to load user from the database
     @Bean
@@ -46,7 +48,10 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            .authenticationProvider(authenticationProvider());
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, 
+    org.springframework.security.web.authentication
+                    .UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
