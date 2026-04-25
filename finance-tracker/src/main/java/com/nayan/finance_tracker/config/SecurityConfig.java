@@ -14,11 +14,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.nayan.finance_tracker.repository.UserRepository;
 import com.nayan.finance_tracker.security.JwtAuthFilter;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.config.Customizer;
 
 @Configuration
 @EnableWebSecurity
@@ -38,23 +41,49 @@ public class SecurityConfig {
 
     // Which requests need auth and which are public
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
         http
+            .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(
+                    org.springframework.http.HttpMethod.OPTIONS, "/**")
+                    .permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, 
-    org.springframework.security.web.authentication
-                    .UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter,
+                    UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+@Bean
+public org.springframework.web.cors.CorsConfigurationSource 
+        corsConfigurationSource() {
+
+    org.springframework.web.cors.CorsConfiguration config =
+            new org.springframework.web.cors.CorsConfiguration();
+
+    config.setAllowedOrigins(java.util.List.of(
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"    
+    ));
+    config.setAllowedMethods(
+            java.util.List.of("GET","POST","PUT","DELETE","OPTIONS"));
+    config.setAllowedHeaders(java.util.List.of("*"));
+    config.setAllowCredentials(true);
+
+    org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
+            new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+}
 
     // How to authenticate — load user + check password
     @Bean

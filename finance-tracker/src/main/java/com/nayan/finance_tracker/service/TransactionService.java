@@ -37,7 +37,7 @@ public class TransactionService {
     }
 
     public List<Transaction> getAllForUser(User user) {
-        return transactionRepository.findByUserId(user);
+        return transactionRepository.findByUser(user);
     }
 
     public Transaction update(Long id, TransactionDTO dto, User user) {

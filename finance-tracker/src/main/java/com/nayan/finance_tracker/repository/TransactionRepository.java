@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     
-    List<Transaction> findByUserId(User user);
+    List<Transaction> findByUser(User user);
 
     List<Transaction> findByUserAndCategory(User user, String category);
 
