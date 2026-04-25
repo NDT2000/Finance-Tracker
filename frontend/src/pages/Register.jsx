@@ -77,6 +77,7 @@ export default function Register() {
                     {field('password', 'Password', 'password', '•••••••• (min 6)', password, setPassword)}
 
                     <button
+                        className="auth-btn"
                         style={{
                             ...styles.button,
                             ...(loading ? styles.buttonLoading : {})
@@ -219,7 +220,6 @@ const styles = {
         backgroundColor: 'rgba(99,102,241,0.05)',
     },
     button: {
-        className="auth-btn",
         marginTop: '0.5rem',
         padding: '0.85rem',
         background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',

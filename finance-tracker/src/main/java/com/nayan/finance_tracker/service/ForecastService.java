@@ -30,7 +30,9 @@ public class ForecastService {
     private final RestTemplate restTemplate;
 
     private static final String ML_SERVICE_URL = 
-        "http://localhost:8000/forecast";
+        System.getenv("ML_SERVICE_URL") != null
+            ? System.getenv("ML_SERVICE_URL")
+            : "http://localhost:8000/forecast";
 
     public Object getForecastForCategory(User user, String category, double budgetLimit) {
 
