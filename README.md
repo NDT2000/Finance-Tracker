@@ -23,14 +23,14 @@ docker run --name finance-db \
 ./mvnw spring-boot:run
 ```
 
-## Progress
 - [x] JWT auth (register + login)
-- [ ] Transaction CRUD
-- [ ] Budget tracking
-- [ ] ML spend forecasting
-- [ ] React frontend
-- [ ] Docker Compose
-- [ ] CI/CD + AWS deployment
+- [x] Transaction CRUD
+- [x] Budget tracking
+- [x] ML spend forecasting
+- [x] React frontend
+- [x] Docker Compose
+- [x] CI/CD + GitHub Actions
+- [ ] AWS deployment
 
 ## License
 MIT
