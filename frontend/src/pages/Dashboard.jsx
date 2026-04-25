@@ -446,7 +446,7 @@ export default function Dashboard() {
 }
 
 const styles = {
-    page: { minHeight: '100vh', backgroundColor: '#f0f2f5' },
+    page: { minHeight: '100vh', backgroundColor: '#f8f9fb' },
     header: {
         backgroundColor: '#1a1a2e',
         padding: '1rem 2rem',
@@ -474,15 +474,25 @@ const styles = {
     },
     summaryCard: {
         backgroundColor: 'white',
-        padding: '1.25rem',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        padding: '1.25rem 1.5rem',
+        borderRadius: '16px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)',
+        border: '1px solid rgba(0,0,0,0.05)',
     },
-    cardLabel: { margin: 0, color: '#666', fontSize: '0.875rem' },
+    cardLabel: {
+        margin: 0,
+        color: '#9ca3af',
+        fontSize: '0.75rem',
+        fontWeight: '600',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+    },
     cardValue: {
-        margin: '0.5rem 0 0',
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
+        margin: '0.4rem 0 0',
+        fontSize: '1.75rem',
+        fontWeight: '700',
+        fontFamily: "'DM Sans', sans-serif",
+        letterSpacing: '-0.02em',
     },
     addBtn: {
         padding: '0.75rem 1.5rem',
@@ -520,7 +530,7 @@ const styles = {
     },
     chartsGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
         gap: '1rem',
         marginBottom: '1.5rem',
     },
