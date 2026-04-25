@@ -75,8 +75,8 @@ def forecast_spending(request: ForecastRequest) -> ForecastResponse:
 
     # Determine status
     overspend = max(0.0, predicted_total - request.budget_limit)
-    status = "WILL OVERSPEND" if predicted_total > request.budget_limit \
-        else "ON TRACK"
+    status = "WILL_OVERSPEND" if predicted_total > request.budget_limit \
+        else "ON_TRACK"
 
     return ForecastResponse(
         category=request.category,
