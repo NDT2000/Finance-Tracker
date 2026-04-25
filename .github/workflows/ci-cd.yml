@@ -1,4 +1,4 @@
-name: Finance Tracker CI/CD
+﻿name: Finance Tracker CI/CD
 
 on:
   push:
@@ -84,4 +84,36 @@ jobs:
         working-directory: ./finance-tracker
         run: chmod +x mvnw
 
-      - name: Build and push backend i
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./finance-tracker
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/finance-tracker-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push ML service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ml-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/finance-tracker-ml:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/finance-tracker-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: |
+          echo "Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "Backend image pushed" >> $GITHUB_STEP_SUMMARY
+          echo "ML service image pushed" >> $GITHUB_STEP_SUMMARY
+          echo "Frontend image pushed" >> $GITHUB_STEP_SUMMARY
