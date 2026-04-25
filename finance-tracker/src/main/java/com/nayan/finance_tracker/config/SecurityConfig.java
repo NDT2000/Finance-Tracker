@@ -71,6 +71,7 @@ public org.springframework.web.cors.CorsConfigurationSource
             new org.springframework.web.cors.CorsConfiguration();
 
     config.setAllowedOrigins(java.util.List.of(
+        "http://localhost",
         "http://localhost:5173",
         "http://127.0.0.1:5173"    
     ));
