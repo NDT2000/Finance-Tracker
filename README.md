@@ -7,7 +7,7 @@ Budget tracking app with ML-powered spend forecasting.
 - PostgreSQL 15 (Docker)
 - Python FastAPI + scikit-learn (planned)
 - React + TailwindCSS (planned)
-- Docker Compose, GitHub Actions, AWS (planned)
+- Docker Compose, GitHub Actions
 
 ## Run locally
 
