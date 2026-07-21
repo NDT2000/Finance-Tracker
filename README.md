@@ -30,7 +30,6 @@ docker run --name finance-db \
 - [x] React frontend
 - [x] Docker Compose
 - [x] CI/CD + GitHub Actions
-- [ ] AWS deployment
 
 ## License
 MIT
