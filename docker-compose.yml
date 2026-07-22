@@ -29,6 +29,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       ML_SERVICE_URL: http://ml-service:8000/forecast
+      APPLICATION_SECURITY_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
     depends_on:
       db:
         condition: service_healthy
