@@ -9,54 +9,34 @@ on:
 jobs:
 
   test-backend:
-    name: Test Spring Boot
-    runs-on: ubuntu-latest
+  name: Test Spring Boot
+  runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: nayan
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: financedb
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Set up Java 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: "17"
+        distribution: "temurin"
+        cache: "maven"
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+    - name: Make mvnw executable
+      working-directory: ./finance-tracker
+      run: chmod +x mvnw
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+    - name: Run tests
+      working-directory: ./finance-tracker
+      run: ./mvnw --batch-mode clean test
 
-      - name: Make mvnw executable
-        working-directory: ./finance-tracker
-        run: chmod +x mvnw
-
-      - name: Run tests
-        working-directory: ./finance-tracker
-        run: ./mvnw test
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/financedb
-          SPRING_DATASOURCE_USERNAME: nayan
-          SPRING_DATASOURCE_PASSWORD: password
-          APPLICATION_SECURITY_JWT_SECRET: ${{ secrets.APPLICATION_SECURITY_JWT_SECRET }}
-          APPLICATION_SECURITY_JWT_EXPIRATION: 86400000
+    - name: Upload test reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: spring-test-reports
+        path: finance-tracker/target/surefire-reports/
 
   build-and-push:
     name: Build and Push Docker Images
