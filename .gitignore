@@ -1,0 +1,22 @@
+# Java / Spring Boot
+target/
+*.class
+
+# Python / ml-service
+venv/
+__pycache__/
+*.pyc
+
+# Node / frontend
+node_modules/
+dist/
+
+# Secrets
+.env
+*.env
+
+# IDE / OS
+.vscode/
+.idea/
+*.iml
+.DS_Store
