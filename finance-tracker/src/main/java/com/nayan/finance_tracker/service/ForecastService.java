@@ -39,8 +39,6 @@ public class ForecastService {
 
         // Get current month and year
         LocalDate now = LocalDate.now();
-        int currentMonth = now.getMonthValue();
-        int currentYear = now.getYear();
         int daysInMonth = now.lengthOfMonth();
         LocalDate start = LocalDate.now().withDayOfMonth(1);
         LocalDate end = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
@@ -50,21 +48,16 @@ public class ForecastService {
         List<Transaction> transactions = transactionRepository.findByUserAndCategoryAndTypeAndDateBetween(
                                             user, category, TransactionType.EXPENSE, start, end);
 
-        // Filter to current month only
-        List<Transaction> thisMonth = transactions.stream()
-            .filter(t -> t.getDate().getMonthValue() == currentMonth && 
-                         t.getDate().getYear() == currentYear)
-            .collect(Collectors.toList());
 
         // Build the request payload for the ML service
-        List<Map<String, Object>> txnList = thisMonth.stream()
+        List<Map<String, Object>> txnList = transactions.stream()   // ← use transactions, not thisMonth
             .map(t -> {
                 Map<String, Object> txn = new HashMap<>();
                 txn.put("amount", t.getAmount().doubleValue());
                 txn.put("day", t.getDate().getDayOfMonth());
                 return txn;
-            })
-            .collect(Collectors.toList());
+        })
+        .collect(Collectors.toList());
         
         Map<String, Object> payload = new HashMap<>();
         payload.put("category", category);

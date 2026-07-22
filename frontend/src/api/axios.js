@@ -3,7 +3,7 @@ import axios from 'axios';
 // Detect if running in Docker (served on port 80) or local dev (port 5173)
 const baseURL = (window.location.port === '' || window.location.port === '80')
     ? ''
-    : 'http://127.0.0.1:8080';
+    : 'http://localhost:8080';
 
 const api = axios.create({
     baseURL: baseURL,

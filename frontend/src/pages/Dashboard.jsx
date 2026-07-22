@@ -16,7 +16,7 @@ export default function Dashboard() {
 
     const [transactions, setTransactions] = useState([]);
     const [budgets, setBudgets] = useState([]);
-    const [forecast, setForecast] = useState(null);
+    const [forecasts, setForecasts] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Add transaction form state
@@ -27,6 +27,14 @@ export default function Dashboard() {
         type: 'EXPENSE',
         category: 'Food',
         date: new Date().toISOString().split('T')[0],
+    });
+
+    const [showBudgetForm, setShowBudgetForm] = useState(false);
+    const [budgetForm, setBudgetForm] = useState({
+        category: '',
+        monthlyLimit: '',
+        month: new Date().getMonth() + 1,  // current month
+        year: new Date().getFullYear(),
     });
 
     const categories = ['Food', 'Transport', 'Rent', 
@@ -47,16 +55,16 @@ export default function Dashboard() {
             setTransactions(txnRes.data);
             setBudgets(budgetRes.data);
 
-            // Get forecast for Food category if budget exists
-            const foodBudget = budgetRes.data.find(
-                b => b.category === 'Food'
-            );
-            if (foodBudget) {
-                const forecastRes = await api.get(
-                    `/api/forecast/Food?budgetLimit=${foodBudget.monthlyLimit}`
-                );
-                setForecast(forecastRes.data);
-            }
+            // Forecast every budgeted category, not just Food
+            const forecasts = await Promise.all(
+                budgetRes.data.map(budget =>
+                api.get(`/api/forecast/${budget.category}?budgetLimit=${budget.monthlyLimit}`)
+                .then(res => ({ category: budget.category, data: res.data }))
+                .catch(() => ({ category: budget.category, data: null }))  
+            )
+        );
+
+        setForecasts(forecasts);
         } catch (err) {
             console.error('Failed to fetch data:', err);
         } finally {
@@ -82,6 +90,28 @@ export default function Dashboard() {
             fetchData(); // refresh data
         } catch (err) {
             console.error('Failed to add transaction:', err);
+        }
+    };
+
+    const handleAddBudget = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/api/budgets', {
+            category: budgetForm.category,
+            monthlyLimit: parseFloat(budgetForm.monthlyLimit),
+            month: parseInt(budgetForm.month),
+            year: parseInt(budgetForm.year),
+            });
+            setShowBudgetForm(false);
+            setBudgetForm({ 
+                category: '', 
+                monthlyLimit: '', 
+                month: new Date().getMonth() + 1, 
+                year: new Date().getFullYear() 
+            });
+            fetchData();  // reload so the new budget + its forecast appear
+        } catch (err) {
+            console.error('Failed to add budget:', err);
         }
     };
 
@@ -181,24 +211,24 @@ export default function Dashboard() {
                             ${(totalIncome - totalExpense).toFixed(2)}
                         </p>
                     </div>
-                    {forecast && (
-                        <div style={{
-                            ...styles.summaryCard,
-                            backgroundColor: forecast.status === 'ON_TRACK'
-                                ? '#f0fdf4' : '#fef2f2',
-                        }}>
-                            <p style={styles.cardLabel}>Food Forecast</p>
-                            <p style={{
-                                ...styles.cardValue,
-                                color: forecast.status === 'ON_TRACK'
-                                    ? '#22c55e' : '#ef4444',
+                    {forecasts.map((f) => (
+                        f.data && (
+                            <div key={f.category} style={{
+                                  ...styles.summaryCard,
+                                backgroundColor: f.data.status === 'ON_TRACK' ? '#f0fdf4' : '#fef2f2',
                             }}>
-                                {forecast.status === 'ON_TRACK'
-                                    ? '✓ On track'
-                                    : `⚠ Over by $${forecast.overspend_amount}`}
-                            </p>
-                        </div>
-                    )}
+                                <p style={styles.cardLabel}>{f.category} Forecast</p>
+                                <p style={{
+                                    ...styles.cardValue,
+                                    color: f.data.status === 'ON_TRACK' ? '#22c55e' : '#ef4444',
+                                }}>
+                                    {f.data.status === 'ON_TRACK'
+                                        ? '✓ On track'
+                                        : `⚠ Over by $${f.data.overspend_amount}`}
+                                </p>
+                            </div>
+                        )
+                    ))}
                 </div>
 
                 {/* Add transaction button */}
@@ -260,6 +290,55 @@ export default function Dashboard() {
                         />
                         <button type="submit" style={styles.submitBtn}>
                             Add Transaction
+                        </button>
+                    </form>
+                )}
+                <button 
+                    style={{ ...styles.addBtn, marginLeft: '12px' }}
+                    onClick={() => setShowBudgetForm(!showBudgetForm)}> 
+                    {showBudgetForm ? 'Cancel' : '+ Set Budget'}
+                </button>
+
+                {/* Add budget form */}
+                {showBudgetForm && (
+                    <form onSubmit={handleAddBudget} style={styles.form}>
+                        <select
+                            style={styles.input}
+                            value={budgetForm.category}
+                            onChange={e => setBudgetForm({ ...budgetForm, category: e.target.value })}
+                            required>
+                            <option value="">Select category</option>
+                            {categories.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                        <input
+                            style={styles.input}
+                            type="number"
+                            placeholder="Monthly Limit"
+                            value={budgetForm.monthlyLimit}
+                            onChange={e => setBudgetForm({ ...budgetForm, monthlyLimit: e.target.value })}
+                            required
+                        />
+                        <input
+                            style={styles.input}
+                            type="number"
+                            placeholder="Month (1-12)"
+                            min="1" max="12"
+                            value={budgetForm.month}
+                            onChange={e => setBudgetForm({ ...budgetForm, month: e.target.value })}
+                            required
+                            />
+                        <input
+                            style={styles.input}
+                            type="number"
+                            placeholder="Year"
+                            value={budgetForm.year}
+                            onChange={e => setBudgetForm({ ...budgetForm, year: e.target.value })}
+                            required
+                            />
+                        <button type="submit" style={styles.submitBtn}>
+                            Set Budget
                         </button>
                     </form>
                 )}
