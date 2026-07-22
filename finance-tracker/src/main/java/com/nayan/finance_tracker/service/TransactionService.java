@@ -3,6 +3,7 @@ package com.nayan.finance_tracker.service;
 import com.nayan.finance_tracker.dto.TransactionDTO;
 import com.nayan.finance_tracker.entity.Transaction;
 import com.nayan.finance_tracker.entity.User;
+import com.nayan.finance_tracker.exception.ResourceNotFoundException;
 import com.nayan.finance_tracker.exception.UnauthorizedAccessException;
 import com.nayan.finance_tracker.repository.TransactionRepository;
 
@@ -43,7 +44,7 @@ public class TransactionService {
 
     public Transaction update(Long id, TransactionDTO dto, User user) {
         Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
         
         // Security Check - can only update your own transactions
         if (!transaction.getUser().getId().equals(user.getId())) {
@@ -61,7 +62,7 @@ public class TransactionService {
 
     public void delete(Long id, User user) {
         Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
         
         // Security Check
         if(!transaction.getUser().getId().equals(user.getId())) {

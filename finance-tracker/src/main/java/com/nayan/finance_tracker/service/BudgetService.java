@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.nayan.finance_tracker.dto.BudgetDTO;
 import com.nayan.finance_tracker.entity.Budget;
 import com.nayan.finance_tracker.entity.User;
+import com.nayan.finance_tracker.exception.DuplicateResourceException;
 import com.nayan.finance_tracker.repository.BudgetRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class BudgetService {
         // Check if budget already exists for this category/month/year
         budgetRepository.findByUserAndCategoryAndMonthAndYear(user, dto.getCategory(), dto.getMonth(), dto.getYear())
             .ifPresent(b -> {
-                throw new RuntimeException(
+                throw new DuplicateResourceException(
                     "Budget already exists for category " + dto.getCategory() + " in " + dto.getMonth() + "/" + dto.getYear());
             });
         
