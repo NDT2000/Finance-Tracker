@@ -3,6 +3,7 @@ package com.nayan.finance_tracker.service;
 import com.nayan.finance_tracker.dto.TransactionDTO;
 import com.nayan.finance_tracker.entity.Transaction;
 import com.nayan.finance_tracker.entity.User;
+import com.nayan.finance_tracker.exception.UnauthorizedAccessException;
 import com.nayan.finance_tracker.repository.TransactionRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -45,9 +46,9 @@ public class TransactionService {
                 .orElseThrow(() -> new RuntimeException("Transaction not found"));
         
         // Security Check - can only update your own transactions
-        if(!transaction.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
-        }
+        if (!transaction.getUser().getId().equals(user.getId())) {
+            throw new UnauthorizedAccessException("You do not have access to this transaction");
+}
 
         transaction.setDescription(dto.getDescription());
         transaction.setAmount(dto.getAmount());
@@ -64,7 +65,7 @@ public class TransactionService {
         
         // Security Check
         if(!transaction.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedAccessException("You do not have access to this transaction");
         }
 
         transactionRepository.delete(transaction);

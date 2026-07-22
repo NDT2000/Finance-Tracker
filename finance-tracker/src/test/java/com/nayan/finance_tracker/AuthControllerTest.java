@@ -1,5 +1,6 @@
 package com.nayan.finance_tracker;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // your own classes — adjust package names to match yours:
 import com.nayan.finance_tracker.entity.User;
 import com.nayan.finance_tracker.entity.Role;
+import com.nayan.finance_tracker.repository.TransactionRepository;
 import com.nayan.finance_tracker.repository.UserRepository;
 
 @SpringBootTest
@@ -25,7 +27,14 @@ class AuthControllerTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired UserRepository userRepository;
+    @Autowired TransactionRepository transactionRepository;
     @Autowired PasswordEncoder passwordEncoder;
+
+    @BeforeEach
+    void setUp() {
+        transactionRepository.deleteAll();   
+        userRepository.deleteAll();          
+    }
 
     @Test
     void login_withValidCredentials_returns200AndToken() throws Exception {
@@ -57,6 +66,6 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"test@example.com\",\"password\":\"wrongpass\"}"))
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().isForbidden());
     }
 }

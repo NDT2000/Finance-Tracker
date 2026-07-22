@@ -2,6 +2,7 @@ package com.nayan.finance_tracker;
 
 import com.nayan.finance_tracker.entity.Role;
 import com.nayan.finance_tracker.entity.User;
+import com.nayan.finance_tracker.repository.TransactionRepository;
 import com.nayan.finance_tracker.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -24,10 +27,12 @@ class TransactionValidationTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired UserRepository userRepository;
+    @Autowired TransactionRepository transactionRepository;
     @Autowired PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
+        transactionRepository.deleteAll(); 
         userRepository.deleteAll();
         userRepository.save(User.builder()
                 .email("a@example.com")
