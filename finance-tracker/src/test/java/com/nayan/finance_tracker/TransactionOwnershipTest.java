@@ -1,5 +1,6 @@
 package com.nayan.finance_tracker;
 
+import com.nayan.finance_tracker.dto.TransactionDTO;
 import com.nayan.finance_tracker.entity.Role;
 import com.nayan.finance_tracker.entity.Transaction;
 import com.nayan.finance_tracker.entity.TransactionType;
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -73,33 +75,55 @@ class TransactionOwnershipTest {
     }
 
     @Test
-    void getTransaction_ownedByOtherUser_isRejected() throws Exception {
-        User userA = createUser("a@example.com");
+    void updateTransaction_ownedByOtherUser_isRejected() throws Exception {
+        createUser("a@example.com");
+
         User userB = createUser("b@example.com");
         Transaction bsTxn = createTxn(userB);
 
         String tokenA = loginAndGetToken("a@example.com");
 
-        // VERIFY endpoint path: is it /api/transactions/{id} ?
-        mockMvc.perform(get("/api/transactions/" + bsTxn.getId())
-                        .header("Authorization", "Bearer " + tokenA))
-                .andExpect(status().is4xxClientError());  // must NOT return B's data
-    }
+        String updateRequest = """
+            {
+                "description": "Attempted update",
+                "amount": 100,
+                "type": "EXPENSE",
+                "category": "Food",
+                "date": "2026-07-22"
+            }
+            """;
 
+        mockMvc.perform(put("/api/transactions/{id}", bsTxn.getId())
+                .header("Authorization", "Bearer " + tokenA)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateRequest))
+                .andExpect(status().isForbidden());
+
+        Transaction unchangedTransaction =
+                transactionRepository.findById(bsTxn.getId()).orElseThrow();
+
+        assertThat(unchangedTransaction.getDescription())
+                .isEqualTo("test");
+
+        assertThat(unchangedTransaction.getAmount())
+                .isEqualByComparingTo("50");
+    }
+    
     @Test
     void deleteTransaction_ownedByOtherUser_isRejected() throws Exception {
-        User userA = createUser("a@example.com");
+        createUser("a@example.com");
+
         User userB = createUser("b@example.com");
         Transaction bsTxn = createTxn(userB);
 
         String tokenA = loginAndGetToken("a@example.com");
 
-        mockMvc.perform(delete("/api/transactions/" + bsTxn.getId())
-                        .header("Authorization", "Bearer " + tokenA))
-                .andExpect(status().is4xxClientError());
+        mockMvc.perform(delete("/api/transactions/{id}", bsTxn.getId())
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isForbidden());
 
-        // B's transaction should still exist
-        assertThat(transactionRepository.findById(bsTxn.getId())).isPresent();
+        assertThat(transactionRepository.findById(bsTxn.getId()))
+                .isPresent();
     }
 
     @Test
@@ -122,6 +146,6 @@ class TransactionOwnershipTest {
     @Test
     void accessingEndpoint_withoutToken_isUnauthorized() throws Exception {
         mockMvc.perform(get("/api/transactions"))
-                .andExpect(status().is4xxClientError());  // 401/403 with no token
+                .andExpect(status().isUnauthorized());  // 401/403 with no token
     }
 }

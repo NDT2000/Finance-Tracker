@@ -2,6 +2,7 @@ package com.nayan.finance_tracker.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -68,4 +69,15 @@ public class GlobalExceptionHandler {
     //         buildBody(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request),
     //         HttpStatus.INTERNAL_SERVER_ERROR);
     // }
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, String>> handleAuthenticationException(   
+        AuthenticationException exception) {
+
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Invalid email or password");
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(response);
+    }
 }

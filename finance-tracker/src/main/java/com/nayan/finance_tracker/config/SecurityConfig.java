@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.nayan.finance_tracker.repository.UserRepository;
 import com.nayan.finance_tracker.security.JwtAuthFilter;
@@ -43,48 +44,64 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
+
         http
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
+
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.sendError(
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        "Authentication is required"
+                    );
+                })
+            )
+
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(
-                    org.springframework.http.HttpMethod.OPTIONS, "/**")
-                    .permitAll()
+                    org.springframework.http.HttpMethod.OPTIONS,
+                    "/**"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
+
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter,
-                    UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(
+                jwtAuthFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
 
         return http.build();
     }
 
-@Bean
-public org.springframework.web.cors.CorsConfigurationSource 
-        corsConfigurationSource() {
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource 
+            corsConfigurationSource() {
 
-    org.springframework.web.cors.CorsConfiguration config =
-            new org.springframework.web.cors.CorsConfiguration();
+        org.springframework.web.cors.CorsConfiguration config =
+                new org.springframework.web.cors.CorsConfiguration();
 
-    config.setAllowedOrigins(java.util.List.of(
-        "http://localhost",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"    
-    ));
-    config.setAllowedMethods(
-            java.util.List.of("GET","POST","PUT","DELETE","OPTIONS"));
-    config.setAllowedHeaders(java.util.List.of("*"));
-    config.setAllowCredentials(true);
+        config.setAllowedOrigins(java.util.List.of(
+            "http://localhost",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173"    
+        ));
+        config.setAllowedMethods(
+                java.util.List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        config.setAllowedHeaders(java.util.List.of("*"));
+        config.setAllowCredentials(true);
 
-    org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
-            new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
-    return source;
-}
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source =
+                new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
     // How to authenticate — load user + check password
     @Bean
@@ -109,3 +126,4 @@ public org.springframework.web.cors.CorsConfigurationSource
     }
     
 }
+

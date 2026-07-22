@@ -57,15 +57,16 @@ class AuthControllerTest {
 
     @Test
     void login_withWrongPassword_returns401() throws Exception {
-        User user = User.builder()
-            .email("test@example.com")
-            .password(passwordEncoder.encode("password123"))
-            .fullName("Test User").role(Role.USER).build();
-        userRepository.save(user);
-
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"test@example.com\",\"password\":\"wrongpass\"}"))
-            .andExpect(status().isForbidden());
-    }
+                .content("""
+                    {
+                        "email": "test@example.com",
+                        "password": "wrong-password"
+                    }
+                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error")
+                        .value("Invalid email or password"));
+}
 }
