@@ -61,11 +61,11 @@ public class GlobalExceptionHandler {
             HttpStatus.BAD_REQUEST);
     }
 
-    // 500 — catch-all for anything unhandled (last resort)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleGeneric(Exception ex, WebRequest request) {
-        return new ResponseEntity<>(
-            buildBody(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request),
-            HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    // // 500 — catch-all for anything unhandled (last resort)
+    // @ExceptionHandler(Exception.class)
+    // public ResponseEntity<Object> handleGeneric(Exception ex, WebRequest request) {
+    //     return new ResponseEntity<>(
+    //         buildBody(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request),
+    //         HttpStatus.INTERNAL_SERVER_ERROR);
+    // }
 }
