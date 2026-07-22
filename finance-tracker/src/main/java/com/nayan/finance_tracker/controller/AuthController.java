@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.nayan.finance_tracker.dto.AuthResponse;
+import com.nayan.finance_tracker.dto.LoginRequest;
 import com.nayan.finance_tracker.dto.RegisterRequest;
 import com.nayan.finance_tracker.service.AuthService;
 
@@ -28,14 +29,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
-        @RequestParam String email,
-        @RequestParam String password) {
-        //TODO: process POST request
-        
-        return ResponseEntity.ok(authService.login(email, password));
+    public AuthResponse login(@RequestBody LoginRequest request) {
+        return authService.login(request.getEmail(), request.getPassword());
+
     }
-    
-    
-    
 }
