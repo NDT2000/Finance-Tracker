@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.nayan.finance_tracker.entity.Transaction;
+import com.nayan.finance_tracker.entity.TransactionType;
 import com.nayan.finance_tracker.entity.User;
 import com.nayan.finance_tracker.repository.TransactionRepository;
 
@@ -41,9 +42,13 @@ public class ForecastService {
         int currentMonth = now.getMonthValue();
         int currentYear = now.getYear();
         int daysInMonth = now.lengthOfMonth();
+        LocalDate start = LocalDate.now().withDayOfMonth(1);
+        LocalDate end = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
 
-        // Get all teansactions for this user and category
-        List<Transaction> transactions = transactionRepository.findByUserAndCategory(user, category);
+        // Get all transactions for this user and category
+        // List<Transaction> transactions = transactionRepository.findByUserAndCategory(user, category);
+        List<Transaction> transactions = transactionRepository.findByUserAndCategoryAndTypeAndDateBetween(
+                                            user, category, TransactionType.EXPENSE, start, end);
 
         // Filter to current month only
         List<Transaction> thisMonth = transactions.stream()
