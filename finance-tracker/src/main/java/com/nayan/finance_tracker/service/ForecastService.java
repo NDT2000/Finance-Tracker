@@ -80,7 +80,7 @@ public class ForecastService {
         // Call the Python ML service
         log.info("Calling ML Service for category: {} with {} transactions", category, txnList.size());
 
-        Object response = restTemplate.postForObject(ML_SERVICE_URL, payload, Object.class);
+        Object response = restTemplate.postForObject(ML_SERVICE_URL, entity, Object.class);
         log.info("ML Service response received for category: {}", category);
         return response;
     }
