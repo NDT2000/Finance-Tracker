@@ -1,4 +1,4 @@
-# Finance Tracker v2
+# Finance Tracker 
 
 A full-stack personal finance application with ML-powered spend forecasting. Users track income and expenses, set category budgets, and receive month-end spending predictions with overspend warnings.
 
