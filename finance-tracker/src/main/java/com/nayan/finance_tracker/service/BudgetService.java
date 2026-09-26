@@ -9,6 +9,8 @@ import com.nayan.finance_tracker.entity.Budget;
 import com.nayan.finance_tracker.entity.User;
 import com.nayan.finance_tracker.exception.DuplicateResourceException;
 import com.nayan.finance_tracker.repository.BudgetRepository;
+import com.nayan.finance_tracker.exception.ResourceNotFoundException;
+import com.nayan.finance_tracker.exception.UnauthorizedAccessException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,10 +52,10 @@ public class BudgetService {
 
     public Budget update(Long id, BudgetDTO dto, User user) {
         Budget budget = budgetRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Budget not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Budget not found"));
         
         if(!budget.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedAccessException("Unauthorized to update this budget");
         }
 
         budget.setMonthlyLimit(dto.getMonthlyLimit());
@@ -63,10 +65,10 @@ public class BudgetService {
 
     public void delete(Long id, User user) {
         Budget budget = budgetRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Budget not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Budget not found"));
         
         if(!budget.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedAccessException("Unauthorized to delete this budget");
         }
 
         budgetRepository.delete(budget);

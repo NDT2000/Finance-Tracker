@@ -18,6 +18,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import java.util.Date;
+import java.util.HexFormat;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -27,6 +34,8 @@ class JwtAuthFilterTest {
     @Autowired UserRepository userRepository;
     @Autowired TransactionRepository transactionRepository;
     @Autowired PasswordEncoder passwordEncoder;
+
+    @Value("${application.security.jwt.secret}") String jwtSecret;
 
     @BeforeEach
     void cleanUp() {
@@ -76,6 +85,24 @@ class JwtAuthFilterTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"returning@example.com\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void expiredToken_returns401() throws Exception {
+        createUser("expired@example.com");
+
+        // A genuine token (correct secret) whose expiry time is one hour in the past
+        long now = System.currentTimeMillis();
+        String expiredToken = Jwts.builder()
+                .setSubject("expired@example.com")
+                .setIssuedAt(new Date(now - 2 * 60 * 60 * 1000))   // issued 2 hours ago
+                .setExpiration(new Date(now - 60 * 60 * 1000))     // expired 1 hour ago
+                .signWith(Keys.hmacShaKeyFor(HexFormat.of().parseHex(jwtSecret)), SignatureAlgorithm.HS256)
+                .compact();
+
+        mockMvc.perform(get("/api/transactions")
+                        .header("Authorization", "Bearer " + expiredToken))
+                .andExpect(status().isUnauthorized());
     }
 
     private User createUser(String email) {
