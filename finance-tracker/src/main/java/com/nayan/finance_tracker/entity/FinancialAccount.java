@@ -13,7 +13,7 @@ import lombok.*;
     name = "financial_accounts",
     uniqueConstraints = {
         @UniqueConstraint (
-            name = "financial_account_user_name",
+            name = "uk_financial_account_user_name",
             columnNames = {"user_id", "name"}
         )
     }

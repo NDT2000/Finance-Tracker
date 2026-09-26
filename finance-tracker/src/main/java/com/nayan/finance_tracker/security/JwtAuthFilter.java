@@ -1,13 +1,7 @@
 package com.nayan.finance_tracker.security;
 
-import com.nayan.finance_tracker.entity.User;
-import com.nayan.finance_tracker.repository.UserRepository;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Optional;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +9,16 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
+import com.nayan.finance_tracker.entity.User;
+import com.nayan.finance_tracker.repository.UserRepository;
+
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
@@ -42,24 +45,32 @@ public class JwtAuthFilter extends OncePerRequestFilter{
             final String jwt = authHeader.substring(7);
 
             // Extract email from token
-            final String userEmail = jwtService.extractUsername(jwt);
+            try {
+                // Extract email from token (verifies the signature and throws if the token is bad)
+                final String userEmail = jwtService.extractUsername(jwt);
 
-            // If we have an email and no existing auth in context
-            if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                // If we have an email and no existing auth in context
+                if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                // Load the user from the database
-                User userDetails = userRepository.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));
+                    // Load the user; the account may have been deleted since the token was issued
+                    Optional<User> user = userRepository.findByEmail(userEmail);
 
-                // Validate the token
-                if(jwtService.isTokenValid(jwt, userDetails)) {
+                    // Validate the token
+                    if (user.isPresent() && jwtService.isTokenValid(jwt, user.get())) {
 
-                    // Create auth token and set in security context
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        // Create auth token and set in security context
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                user.get(), null, user.get().getAuthorities());
 
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
                 }
+            } catch (JwtException | IllegalArgumentException ex) {
+                // Bad token: stay unauthenticated and let SecurityConfig decide (401 or public)
+                log.debug("Rejected JWT: {}", ex.getClass().getSimpleName());
+                SecurityContextHolder.clearContext();
             }
 
             // Continue the filter chain
