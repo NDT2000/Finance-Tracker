@@ -10,7 +10,7 @@ import lombok.*;
 
 @Entity
 @Table(
-    name = "financial accounts",
+    name = "financial_accounts",
     uniqueConstraints = {
         @UniqueConstraint (
             name = "financial_account_user_name",
