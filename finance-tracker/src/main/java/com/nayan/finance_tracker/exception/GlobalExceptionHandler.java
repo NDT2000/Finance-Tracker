@@ -69,15 +69,11 @@ public class GlobalExceptionHandler {
     //         buildBody(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request),
     //         HttpStatus.INTERNAL_SERVER_ERROR);
     // }
+        // 401 — wrong email or password at login
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Map<String, String>> handleAuthenticationException(   
-        AuthenticationException exception) {
-
-        Map<String, String> response = new HashMap<>();
-        response.put("error", "Invalid email or password");
-
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(response);
+    public ResponseEntity<Object> handleAuthentication(AuthenticationException ex, WebRequest request) {
+        return new ResponseEntity<>(
+            buildBody(HttpStatus.UNAUTHORIZED, "Invalid email or password", request),
+            HttpStatus.UNAUTHORIZED);
     }
 }

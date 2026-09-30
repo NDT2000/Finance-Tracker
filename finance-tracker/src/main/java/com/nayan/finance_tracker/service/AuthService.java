@@ -6,6 +6,7 @@ import com.nayan.finance_tracker.entity.Role;
 import com.nayan.finance_tracker.entity.User;
 import com.nayan.finance_tracker.repository.UserRepository;
 import com.nayan.finance_tracker.security.JwtService;
+import com.nayan.finance_tracker.exception.DuplicateResourceException;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,7 +29,7 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
         // Check if user already exist
         if(userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered");
+            throw new DuplicateResourceException("Email already registered");
         }
 
         // Build the user

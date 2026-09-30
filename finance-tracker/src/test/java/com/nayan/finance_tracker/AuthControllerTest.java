@@ -66,11 +66,12 @@ class AuthControllerTest {
                     }
                 """))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error")
-                        .value("Invalid email or password"));
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.message").value("Invalid email or password"))
+                .andExpect(jsonPath("$.path").value("/api/auth/login"));
     }
 
-        @Test
+    @Test
     void login_withBlankEmail_returns400() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -92,5 +93,22 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"test@example.com\"}"))
             .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void register_withExistingEmail_returns409() throws Exception {
+        String body = "{\"fullName\":\"Test User\",\"email\":\"dup@example.com\",\"password\":\"password123\"}";
+
+        // First registration succeeds
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+            .andExpect(status().isOk());
+
+        // Second registration with the same email is a conflict
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+            .andExpect(status().isConflict());
     }
 }
