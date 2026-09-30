@@ -68,5 +68,29 @@ class AuthControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error")
                         .value("Invalid email or password"));
-}
+    }
+
+        @Test
+    void login_withBlankEmail_returns400() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"\",\"password\":\"password123\"}"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void login_withMalformedEmail_returns400() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"not-an-email\",\"password\":\"password123\"}"))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void login_withMissingPassword_returns400() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"test@example.com\"}"))
+            .andExpect(status().isBadRequest());
+    }
 }
