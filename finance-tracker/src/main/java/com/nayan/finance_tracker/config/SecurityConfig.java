@@ -16,6 +16,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nayan.finance_tracker.exception.ErrorBody;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 import com.nayan.finance_tracker.repository.UserRepository;
 import com.nayan.finance_tracker.security.JwtAuthFilter;
@@ -31,6 +35,7 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
     private final JwtAuthFilter jwtAuthFilter;
+    private final ObjectMapper objectMapper;
 
     // How to load user from the database
     @Bean
@@ -50,16 +55,16 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
 
             .exceptionHandling(exception -> exception
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.sendError(
-                        HttpServletResponse.SC_UNAUTHORIZED,
-                        "Authentication is required"
-                    );
+                    .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    objectMapper.writeValue(response.getOutputStream(),
+                        ErrorBody.of(HttpStatus.UNAUTHORIZED, "Authentication is required", request.getRequestURI()));
                 })
             )
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/**", "/error").permitAll()
                 .requestMatchers(
                     org.springframework.http.HttpMethod.OPTIONS,
                     "/**"

@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -103,6 +104,21 @@ class JwtAuthFilterTest {
         mockMvc.perform(get("/api/transactions")
                         .header("Authorization", "Bearer " + expiredToken))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void noToken_returns401WithStandardBody() throws Exception {
+        mockMvc.perform(get("/api/transactions"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.message").value("Authentication is required"))
+                .andExpect(jsonPath("$.path").value("/api/transactions"));
+    }
+
+    @Test
+    void errorPage_isNotBehindLogin() throws Exception {
+        mockMvc.perform(get("/error"))
+                .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(401));
     }
 
     private User createUser(String email) {
