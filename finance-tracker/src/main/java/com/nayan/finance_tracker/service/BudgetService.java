@@ -39,9 +39,7 @@ public class BudgetService {
             .build();
         
         Budget saved = budgetRepository.save(budget);
-        log.info("Budget created for user {}:{} - {}/{}",
-            user.getEmail(), dto.getCategory(),
-            dto.getMonth(), dto.getYear());
+        log.info("Budget {} created for user {}", saved.getId(), user.getId());
         
         return saved;
     }
@@ -72,7 +70,7 @@ public class BudgetService {
         }
 
         budgetRepository.delete(budget);
-        log.info("Budget {} deleted by {}", id, user.getEmail());
+        log.info("Budget {} deleted by user {}", id, user.getId());
     }
     
 }

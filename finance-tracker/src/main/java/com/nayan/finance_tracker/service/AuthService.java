@@ -42,7 +42,7 @@ public class AuthService {
         
         // Save to Database
         userRepository.save(user);
-        log.info("New user registered: {}", user.getEmail());
+        log.info("New user registered: {}", user.getId());
 
         // Generate and return token
         var token = jwtService.generateToken(user);
@@ -56,7 +56,7 @@ public class AuthService {
         // If we get here, credentials are correct
         var user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
-        log.info("User logged in: {}", email);
+        log.info("User logged in: {}", user.getId());
 
         var token = jwtService.generateToken(user);
         return new AuthResponse(token, user.getEmail(), user.getFullName());

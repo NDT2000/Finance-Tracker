@@ -32,8 +32,7 @@ public class TransactionService {
                 .build();
 
         Transaction saved = transactionRepository.save(transaction);
-        log.info("Transaction created for user {}: {}",
-                user.getEmail(), saved.getId());
+        log.info("Transaction {} created for user {}", saved.getId(), user.getId());
         return saved;
         
     }
@@ -70,7 +69,7 @@ public class TransactionService {
         }
 
         transactionRepository.delete(transaction);
-        log.info("Transaction {} deleted by user {}", id, user.getEmail());
+        log.info("Transaction {} deleted by user {}", id, user.getId());
     }
 
 }

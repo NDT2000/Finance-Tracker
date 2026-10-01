@@ -42,7 +42,7 @@ public class SecurityConfig {
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
                 .orElseThrow(() -> 
-                    new UsernameNotFoundException("User not found: " + username));
+                    new UsernameNotFoundException("User not found"));
     }
 
     // Which requests need auth and which are public
