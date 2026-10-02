@@ -42,13 +42,9 @@ public class TransactionService {
     }
 
     public Transaction update(Long id, TransactionDTO dto, User user) {
-        Transaction transaction = transactionRepository.findById(id)
+        // Only finds the transaction if it belongs to this user
+        Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
-        
-        // Security Check - can only update your own transactions
-        if (!transaction.getUser().getId().equals(user.getId())) {
-            throw new UnauthorizedAccessException("You do not have access to this transaction");
-}
 
         transaction.setDescription(dto.getDescription());
         transaction.setAmount(dto.getAmount());
@@ -60,16 +56,11 @@ public class TransactionService {
     }
 
     public void delete(Long id, User user) {
-        Transaction transaction = transactionRepository.findById(id)
+        // Only finds the transaction if it belongs to this user
+        Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
-        
-        // Security Check
-        if(!transaction.getUser().getId().equals(user.getId())) {
-            throw new UnauthorizedAccessException("You do not have access to this transaction");
-        }
 
         transactionRepository.delete(transaction);
         log.info("Transaction {} deleted by user {}", id, user.getId());
     }
-
 }

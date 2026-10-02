@@ -2,6 +2,7 @@ package com.nayan.finance_tracker.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import com.nayan.finance_tracker.entity.Transaction;
 import com.nayan.finance_tracker.entity.TransactionType;
@@ -15,6 +16,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByUser(User user);
 
     List<Transaction> findByUserAndCategory(User user, String category);
+
+    Optional<Transaction> findByIdAndUser(Long id, User user);
 
     List<Transaction> findByUserAndCategoryAndTypeAndDateBetween(
     User user, String category, TransactionType type, LocalDate start, LocalDate end);

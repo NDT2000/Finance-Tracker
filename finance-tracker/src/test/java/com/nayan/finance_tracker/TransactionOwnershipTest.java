@@ -97,7 +97,7 @@ class TransactionOwnershipTest {
                 .header("Authorization", "Bearer " + tokenA)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateRequest))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
 
         Transaction unchangedTransaction =
                 transactionRepository.findById(bsTxn.getId()).orElseThrow();
@@ -120,7 +120,7 @@ class TransactionOwnershipTest {
 
         mockMvc.perform(delete("/api/transactions/{id}", bsTxn.getId())
                 .header("Authorization", "Bearer " + tokenA))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
 
         assertThat(transactionRepository.findById(bsTxn.getId()))
                 .isPresent();
@@ -147,5 +147,25 @@ class TransactionOwnershipTest {
     void accessingEndpoint_withoutToken_isUnauthorized() throws Exception {
         mockMvc.perform(get("/api/transactions"))
                 .andExpect(status().isUnauthorized());  // 401/403 with no token
+    }
+
+    @Test
+    void otherUsersTransaction_looksIdenticalToMissingOne() throws Exception {
+        createUser("a@example.com");
+        User userB = createUser("b@example.com");
+        Transaction bsTxn = createTxn(userB);
+        String tokenA = loginAndGetToken("a@example.com");
+
+        // Someone else's transaction
+        mockMvc.perform(delete("/api/transactions/{id}", bsTxn.getId())
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Transaction not found"));
+
+        // A transaction that does not exist at all
+        mockMvc.perform(delete("/api/transactions/{id}", 999999L)
+                .header("Authorization", "Bearer " + tokenA))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Transaction not found"));
     }
 }
