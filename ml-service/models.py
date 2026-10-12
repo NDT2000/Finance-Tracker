@@ -71,7 +71,7 @@ def forecast_spending(request: ForecastRequest) -> ForecastResponse:
         else:
             confidence = "LOW"
     # Ensure prediction is not negative
-    predicted_total = max(predicted_total, total_spent)
+    predicted_total = max(0.0, predicted_total, total_spent)
 
     # Determine status
     overspend = max(0.0, predicted_total - request.budget_limit)

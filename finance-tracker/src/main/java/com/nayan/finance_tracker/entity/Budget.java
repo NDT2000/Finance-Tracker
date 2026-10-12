@@ -21,7 +21,7 @@ public class Budget {
     @Column(nullable = false)
     private String category;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision=23, scale=4)
     private BigDecimal monthlyLimit;
 
     @Column(name = "\"month\"", nullable = false)
@@ -29,6 +29,9 @@ public class Budget {
 
     @Column(name = "\"year\"", nullable = false)
     private Integer year;
+
+    @Builder.Default @Column(nullable=false, length=3)
+    private String currency = "USD";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

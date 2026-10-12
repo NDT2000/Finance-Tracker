@@ -1,653 +1,111 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import {
-    BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
-    LineChart, Line, ResponsiveContainer,
-    PieChart, Pie, Cell
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import './Pipeline.css';
 
-const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4'];
-
+const today = () => new Date().toISOString().slice(0, 10);
+const currentMonth = () => today().slice(0, 7);
 export default function Dashboard() {
-    const { user, logout, token } = useAuth();
-    const navigate = useNavigate();
-
-    const [transactions, setTransactions] = useState([]);
-    const [budgets, setBudgets] = useState([]);
-    const [forecasts, setForecasts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [logoutError, setLogoutError] = useState('');
-
-    // Add transaction form state
-    const [showForm, setShowForm] = useState(false);
-    const [form, setForm] = useState({
-        description: '',
-        amount: '',
-        type: 'EXPENSE',
-        category: 'Food',
-        date: new Date().toISOString().split('T')[0],
-    });
-
-    const [showBudgetForm, setShowBudgetForm] = useState(false);
-    const [budgetForm, setBudgetForm] = useState({
-        category: '',
-        monthlyLimit: '',
-        month: new Date().getMonth() + 1,  // current month
-        year: new Date().getFullYear(),
-    });
-
-    const categories = ['Food', 'Transport', 'Rent', 
-                        'Entertainment', 'Health', 'Other'];
-
-    useEffect(() => {
-        if (token) {
-            fetchData();
-        }
-    }, [token]);
-
-    const fetchData = async () => {
+    const { user, logout, token } = useAuth(); const navigate = useNavigate();
+    const [month, setMonth] = useState(currentMonth()); const [currency, setCurrency] = useState('USD');
+    const [currencies, setCurrencies] = useState([{ code: 'USD', digits: 2 }]);
+    const requestSequence = useRef(0);
+    const [storedSummary, setSummary] = useState(null); const [transactions, setTransactions] = useState([]);
+    const [budgets, setBudgets] = useState([]); const [forecasts, setForecasts] = useState([]);
+    const [error, setError] = useState(''); const [busy, setBusy] = useState(false); const [loading, setLoading] = useState(true);
+    const [showTransaction, setShowTransaction] = useState(false); const [showBudget, setShowBudget] = useState(false);
+    const [form, setForm] = useState({ description: '', amount: '', category: 'Food', type: 'EXPENSE', date: today(), refundOf: '' });
+    const [budget, setBudget] = useState({ category: 'Food', monthlyLimit: '' });
+    const summary = storedSummary?.month === month && storedSummary?.currency === currency ? storedSummary : null;
+    const money = value => new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(value);
+    const digits = currencies.find(c => c.code === currency)?.digits ?? 2;
+    const step = digits === 0 ? '1' : `0.${'0'.repeat(digits - 1)}1`;
+    async function load() {
+        const request = ++requestSequence.current;
+        setError(''); setForecasts([]);
         try {
-            const [txnRes, budgetRes] = await Promise.all([
-                api.get('/api/transactions'),
-                api.get('/api/budgets'),
-            ]);
-            setTransactions(txnRes.data);
-            setBudgets(budgetRes.data);
-
-            // Forecast every budgeted category, not just Food
-            const forecasts = await Promise.all(
-                budgetRes.data.map(budget =>
-                api.get(`/api/forecast/${budget.category}?budgetLimit=${budget.monthlyLimit}`)
-                .then(res => ({ category: budget.category, data: res.data }))
-                .catch(() => ({ category: budget.category, data: null }))  
-            )
-        );
-
-        setForecasts(forecasts);
-        } catch (err) {
-            console.error('Failed to fetch data:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleAddTransaction = async (e) => {
-        e.preventDefault();
+            const period = `month=${encodeURIComponent(month)}&currency=${currency}`;
+            const [stats, entries, limits] = await Promise.all([api.get(`/api/analytics/monthly?${period}`), api.get(`/api/transactions?${period}`), api.get('/api/budgets')]);
+            if (request !== requestSequence.current) return;
+            setSummary(stats.data); setTransactions(entries.data);
+            const selected = limits.data.filter(b => b.currency === currency && b.month === Number(month.slice(5)) && b.year === Number(month.slice(0, 4)));
+            setBudgets(selected);
+            if (month === currentMonth()) {
+                const values = await Promise.all(selected.map(async b => {
+                    try { const { data } = await api.get(`/api/forecast/${encodeURIComponent(b.category)}?budgetLimit=${b.monthlyLimit}&currency=${currency}`); return { category: b.category, data }; }
+                    catch { return { category: b.category, data: null }; }
+                }));
+                if (request === requestSequence.current) setForecasts(values);
+            } else setForecasts([]);
+        } catch { if (request === requestSequence.current) setError('Your dashboard could not be refreshed. Please try again.'); }
+        finally { if (request === requestSequence.current) setLoading(false); }
+    }
+    useEffect(() => { api.get('/api/analytics/currencies').then(r => setCurrencies(r.data)).catch(() => {}); }, []);
+    useEffect(() => { if (token) { setLoading(true); load(); } }, [token, month, currency]);
+    async function submit(event, isBudget) {
+        event.preventDefault(); setBusy(true); setError('');
         try {
-            await api.post('/api/transactions', {
-                ...form,
-                amount: parseFloat(form.amount),
-            });
-            setShowForm(false);
-            setForm({
-                description: '',
-                amount: '',
-                type: 'EXPENSE',
-                category: 'Food',
-                date: new Date().toISOString().split('T')[0],
-            });
-            fetchData(); // refresh data
-        } catch (err) {
-            console.error('Failed to add transaction:', err);
-        }
-    };
-
-    const handleAddBudget = async (e) => {
-        e.preventDefault();
-        try {
-            await api.post('/api/budgets', {
-            category: budgetForm.category,
-            monthlyLimit: parseFloat(budgetForm.monthlyLimit),
-            month: parseInt(budgetForm.month),
-            year: parseInt(budgetForm.year),
-            });
-            setShowBudgetForm(false);
-            setBudgetForm({ 
-                category: '', 
-                monthlyLimit: '', 
-                month: new Date().getMonth() + 1, 
-                year: new Date().getFullYear() 
-            });
-            fetchData();  // reload so the new budget + its forecast appear
-        } catch (err) {
-            console.error('Failed to add budget:', err);
-        }
-    };
-
-    const handleLogout = async () => {
-        try { await logout(); navigate('/login'); }
-        catch { setLogoutError('Logout failed. Please try again to revoke your session.'); }
-    };
-
-    // --- Chart data preparation ---
-
-    // Spending by category (bar chart)
-    const spendingByCategory = categories.map(cat => ({
-        category: cat,
-        spent: transactions
-            .filter(t => t.category === cat && t.type === 'EXPENSE')
-            .reduce((sum, t) => sum + t.amount, 0),
-    })).filter(d => d.spent > 0);
-
-    // Spending vs budget (grouped bar)
-    const spendingVsBudget = budgets.map(b => ({
-        category: b.category,
-        budget: parseFloat(b.monthlyLimit),
-        spent: transactions
-            .filter(t => t.category === b.category && t.type === 'EXPENSE')
-            .reduce((sum, t) => sum + parseFloat(t.amount), 0),
-    }));
-
-    // Daily spending trend (line chart)
-    const dailyTrend = transactions
-        .filter(t => t.type === 'EXPENSE')
-        .reduce((acc, t) => {
-            const day = new Date(t.date).getDate();
-            acc[day] = (acc[day] || 0) + parseFloat(t.amount);
-            return acc;
-        }, {});
-
-    const dailyData = Object.entries(dailyTrend)
-        .map(([day, amount]) => ({ day: parseInt(day), amount }))
-        .sort((a, b) => a.day - b.day);
-
-    // Income vs expense (pie chart)
-    const totalIncome = transactions
-        .filter(t => t.type === 'INCOME')
-        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    const totalExpense = transactions
-        .filter(t => t.type === 'EXPENSE')
-        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-
-    const pieData = [
-        { name: 'Income', value: totalIncome },
-        { name: 'Expense', value: totalExpense },
-    ].filter(d => d.value > 0);
-
-    if (loading) return (
-        <div style={styles.loading}>Loading your dashboard...</div>
-    );
-
-    return (
-        <div style={styles.page}>
-            {/* Header */}
-            <div style={styles.header}>
-                <h1 style={styles.headerTitle}>
-                    Finance Tracker
-                </h1>
-                <div style={styles.headerRight}>
-                    <span style={styles.userName}>
-                        Hi, {user?.fullName}
-                    </span>
-                    <Link to="/profile" style={{ color: '#6366f1', fontWeight: 600 }}>My profile</Link>
-                    {logoutError && <p role="alert">{logoutError}</p>}
-                    <button onClick={handleLogout} style={styles.logoutBtn}>
-                        Logout
-                    </button>
-                </div>
+            if (isBudget) {
+                await api.post('/api/budgets', { ...budget, monthlyLimit: budget.monthlyLimit, currency, month: Number(month.slice(5)), year: Number(month.slice(0, 4)) }); setShowBudget(false);
+            } else {
+                await api.post('/api/transactions', { ...form, amount: form.amount, currency, refundOf: form.type === 'REFUND' ? Number(form.refundOf) : null });
+                setShowTransaction(false); setForm({ ...form, amount: '', description: '', refundOf: '' });
+            }
+            await load();
+        } catch (err) { setError(err.response?.data?.message || 'The entry could not be saved. Please try again.'); }
+        finally { setBusy(false); }
+    }
+    async function exclude(id) {
+        setBusy(true); setError('');
+        try { await api.delete(`/api/transactions/${id}`); await load(); }
+        catch (err) { setError(err.response?.data?.message || 'The entry could not be excluded.'); }
+        finally { setBusy(false); }
+    }
+    const categoryData = (summary?.byCategory || []).map(c => ({ category: c.category, spent: Number(c.amount) }));
+    const budgetData = budgets.map(b => ({ category: b.category, budget: Number(b.monthlyLimit), spent: Number(summary?.byCategory.find(c => c.category === b.category)?.amount || 0) }));
+    const dailyData = (summary?.byDay || []).map(d => ({ date: d.date, amount: Number(d.amount) }));
+    const pieData = summary ? [{ name: 'Income', value: Number(summary.income) }, { name: 'Net expenses', value: Number(summary.netExpenses) }].filter(d => d.value > 0) : [];
+    const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 10);
+    return <div className="pipeline-page"><header><Link to="/dashboard">Finance Tracker</Link><nav>
+        <span>Hi, {user?.fullName}</span><Link to="/imports">Batch imports</Link><Link to="/profile">My profile</Link>
+        <button onClick={async () => { try { await logout(); navigate('/login'); } catch { setError('Logout failed. Please try again.'); } }}>Logout</button>
+    </nav></header><main><h1>Your finances</h1>
+        <div className="pipeline-controls"><label>Month<input type="month" value={month} onChange={e => { if (e.target.value) setMonth(e.target.value); }}/></label>
+            <label>Currency<select value={currency} onChange={e => setCurrency(e.target.value)}>{currencies.map(c => <option key={c.code}>{c.code}</option>)}</select></label>
+            <button onClick={load}>Refresh dashboard</button></div>
+        {error && <p role="alert" className="pipeline-error">{error}</p>}
+        {loading && <p role="status">Loading your dashboard…</p>}
+        {summary && <>
+            <div className="pipeline-stats">{[['Total Income', summary.income], ['Total Expenses (net of refunds)', summary.netExpenses], ['Net Savings', summary.netSavings], ['Refunds', summary.refunds]].map(([label, value]) =>
+                <div key={label} className="pipeline-stat"><span>{label}</span><strong>{money(value)}</strong></div>)}
+                {forecasts.map(f => <div className="pipeline-stat" key={f.category}><span>{f.category} Forecast</span><strong style={{ fontSize: '1.1rem' }}>{!f.data ? 'Forecast unavailable' : f.data.status === 'ON_TRACK' ? '✓ On track' : `⚠ Over by ${money(f.data.overspend_amount)}`}</strong></div>)}
             </div>
-
-            <div style={styles.content}>
-                {/* Summary cards */}
-                <div style={styles.cardRow}>
-                    <div style={styles.summaryCard}>
-                        <p style={styles.cardLabel}>Total Income</p>
-                        <p style={{...styles.cardValue, color: '#22c55e'}}>
-                            ${totalIncome.toFixed(2)}
-                        </p>
-                    </div>
-                    <div style={styles.summaryCard}>
-                        <p style={styles.cardLabel}>Total Expenses</p>
-                        <p style={{...styles.cardValue, color: '#ef4444'}}>
-                            ${totalExpense.toFixed(2)}
-                        </p>
-                    </div>
-                    <div style={styles.summaryCard}>
-                        <p style={styles.cardLabel}>Net Savings</p>
-                        <p style={{
-                            ...styles.cardValue,
-                            color: totalIncome - totalExpense >= 0
-                                ? '#22c55e' : '#ef4444'
-                        }}>
-                            ${(totalIncome - totalExpense).toFixed(2)}
-                        </p>
-                    </div>
-                    {forecasts.map((f) => (
-                        f.data && (
-                            <div key={f.category} style={{
-                                  ...styles.summaryCard,
-                                backgroundColor: f.data.status === 'ON_TRACK' ? '#f0fdf4' : '#fef2f2',
-                            }}>
-                                <p style={styles.cardLabel}>{f.category} Forecast</p>
-                                <p style={{
-                                    ...styles.cardValue,
-                                    color: f.data.status === 'ON_TRACK' ? '#22c55e' : '#ef4444',
-                                }}>
-                                    {f.data.status === 'ON_TRACK'
-                                        ? '✓ On track'
-                                        : `⚠ Over by $${f.data.overspend_amount}`}
-                                </p>
-                            </div>
-                        )
-                    ))}
-                </div>
-
-                {/* Add transaction button */}
-                <button
-                    style={styles.addBtn}
-                    onClick={() => setShowForm(!showForm)}>
-                    {showForm ? 'Cancel' : '+ Add Transaction'}
-                </button>
-
-                {/* Add transaction form */}
-                {showForm && (
-                    <form onSubmit={handleAddTransaction} style={styles.form}>
-                        <input
-                            style={styles.input}
-                            placeholder="Description"
-                            value={form.description}
-                            onChange={e => setForm({
-                                ...form, description: e.target.value
-                            })}
-                            required
-                        />
-                        <input
-                            style={styles.input}
-                            type="number"
-                            placeholder="Amount"
-                            value={form.amount}
-                            onChange={e => setForm({
-                                ...form, amount: e.target.value
-                            })}
-                            required
-                        />
-                        <select
-                            style={styles.input}
-                            value={form.type}
-                            onChange={e => setForm({
-                                ...form, type: e.target.value
-                            })}>
-                            <option value="EXPENSE">Expense</option>
-                            <option value="INCOME">Income</option>
-                        </select>
-                        <select
-                            style={styles.input}
-                            value={form.category}
-                            onChange={e => setForm({
-                                ...form, category: e.target.value
-                            })}>
-                            {categories.map(c => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                        <input
-                            style={styles.input}
-                            type="date"
-                            value={form.date}
-                            onChange={e => setForm({
-                                ...form, date: e.target.value
-                            })}
-                            required
-                        />
-                        <button type="submit" style={styles.submitBtn}>
-                            Add Transaction
-                        </button>
-                    </form>
-                )}
-                <button 
-                    style={{ ...styles.addBtn, marginLeft: '12px' }}
-                    onClick={() => setShowBudgetForm(!showBudgetForm)}> 
-                    {showBudgetForm ? 'Cancel' : '+ Set Budget'}
-                </button>
-
-                {/* Add budget form */}
-                {showBudgetForm && (
-                    <form onSubmit={handleAddBudget} style={styles.form}>
-                        <select
-                            style={styles.input}
-                            value={budgetForm.category}
-                            onChange={e => setBudgetForm({ ...budgetForm, category: e.target.value })}
-                            required>
-                            <option value="">Select category</option>
-                            {categories.map(c => (
-                            <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                        <input
-                            style={styles.input}
-                            type="number"
-                            placeholder="Monthly Limit"
-                            value={budgetForm.monthlyLimit}
-                            onChange={e => setBudgetForm({ ...budgetForm, monthlyLimit: e.target.value })}
-                            required
-                        />
-                        <input
-                            style={styles.input}
-                            type="number"
-                            placeholder="Month (1-12)"
-                            min="1" max="12"
-                            value={budgetForm.month}
-                            onChange={e => setBudgetForm({ ...budgetForm, month: e.target.value })}
-                            required
-                            />
-                        <input
-                            style={styles.input}
-                            type="number"
-                            placeholder="Year"
-                            value={budgetForm.year}
-                            onChange={e => setBudgetForm({ ...budgetForm, year: e.target.value })}
-                            required
-                            />
-                        <button type="submit" style={styles.submitBtn}>
-                            Set Budget
-                        </button>
-                    </form>
-                )}
-
-                {/* Charts grid */}
-                <div style={styles.chartsGrid}>
-
-                    {/* Spending by category */}
-                    {spendingByCategory.length > 0 && (
-                        <div style={styles.chartCard}>
-                            <h3 style={styles.chartTitle}>
-                                Spending by Category
-                            </h3>
-                            <ResponsiveContainer width="100%" height={250}>
-                                <BarChart data={spendingByCategory}>
-                                    <XAxis dataKey="category" />
-                                    <YAxis />
-                                    <Tooltip
-                                        formatter={v => [`$${v.toFixed(2)}`]}
-                                    />
-                                    <Bar
-                                        dataKey="spent"
-                                        fill="#6366f1"
-                                        radius={[4, 4, 0, 0]}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
-
-                    {/* Spending vs budget */}
-                    {spendingVsBudget.length > 0 && (
-                        <div style={styles.chartCard}>
-                            <h3 style={styles.chartTitle}>
-                                Spending vs Budget
-                            </h3>
-                            <ResponsiveContainer width="100%" height={250}>
-                                <BarChart data={spendingVsBudget}>
-                                    <XAxis dataKey="category" />
-                                    <YAxis />
-                                    <Tooltip
-                                        formatter={v => [`$${v.toFixed(2)}`]}
-                                    />
-                                    <Legend />
-                                    <Bar
-                                        dataKey="spent"
-                                        fill="#6366f1"
-                                        name="Spent"
-                                        radius={[4, 4, 0, 0]}
-                                    />
-                                    <Bar
-                                        dataKey="budget"
-                                        fill="#e2e8f0"
-                                        name="Budget"
-                                        radius={[4, 4, 0, 0]}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
-
-                    {/* Daily spending trend */}
-                    {dailyData.length > 0 && (
-                        <div style={styles.chartCard}>
-                            <h3 style={styles.chartTitle}>
-                                Daily Spending Trend
-                            </h3>
-                            <ResponsiveContainer width="100%" height={250}>
-                                <LineChart data={dailyData}>
-                                    <XAxis
-                                        dataKey="day"
-                                        label={{
-                                            value: 'Day of month',
-                                            position: 'insideBottom',
-                                            offset: -5
-                                        }}
-                                    />
-                                    <YAxis />
-                                    <Tooltip
-                                        formatter={v => [`$${v.toFixed(2)}`]}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="amount"
-                                        stroke="#6366f1"
-                                        strokeWidth={2}
-                                        dot={{ r: 4 }}
-                                        name="Daily spend"
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
-
-                    {/* Income vs expense pie */}
-                    {pieData.length > 0 && (
-                        <div style={styles.chartCard}>
-                            <h3 style={styles.chartTitle}>
-                                Income vs Expense
-                            </h3>
-                            <ResponsiveContainer width="100%" height={250}>
-                                <PieChart>
-                                    <Pie
-                                        data={pieData}
-                                        cx="50%"
-                                        cy="50%"
-                                        outerRadius={80}
-                                        dataKey="value"
-                                        label={({name, value}) =>
-                                            `${name}: $${value.toFixed(0)}`
-                                        }>
-                                        {pieData.map((_, i) => (
-                                            <Cell
-                                                key={i}
-                                                fill={COLORS[i]}
-                                            />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        formatter={v => [`$${v.toFixed(2)}`]}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
-                </div>
-
-                {/* Recent transactions */}
-                <div style={styles.tableCard}>
-                    <h3 style={styles.chartTitle}>Recent Transactions</h3>
-                    {transactions.length === 0 ? (
-                        <p style={{ color: '#666', textAlign: 'center' }}>
-                            No transactions yet. Add one above.
-                        </p>
-                    ) : (
-                        <table style={styles.table}>
-                            <thead>
-                                <tr style={styles.tableHeader}>
-                                    <th style={styles.th}>Date</th>
-                                    <th style={styles.th}>Description</th>
-                                    <th style={styles.th}>Category</th>
-                                    <th style={styles.th}>Type</th>
-                                    <th style={styles.th}>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {transactions
-                                    .slice()
-                                    .reverse()
-                                    .slice(0, 10)
-                                    .map(t => (
-                                    <tr key={t.id} style={styles.tableRow}>
-                                        <td style={styles.td}>{t.date}</td>
-                                        <td style={styles.td}>
-                                            {t.description}
-                                        </td>
-                                        <td style={styles.td}>{t.category}</td>
-                                        <td style={styles.td}>
-                                            <span style={{
-                                                color: t.type === 'INCOME'
-                                                    ? '#22c55e' : '#ef4444',
-                                                fontWeight: 'bold',
-                                            }}>
-                                                {t.type}
-                                            </span>
-                                        </td>
-                                        <td style={{
-                                            ...styles.td,
-                                            color: t.type === 'INCOME'
-                                                ? '#22c55e' : '#ef4444',
-                                            fontWeight: 'bold',
-                                        }}>
-                                            ${parseFloat(t.amount).toFixed(2)}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-            </div>
+            <p className="pipeline-help">{summary.transactionCount} canonical entries · Ledger queried {new Date(summary.asOf).toLocaleString()} · Latest applied import: {summary.imports.latest_import_at ? new Date(summary.imports.latest_import_at).toLocaleString() : 'none'}.
+                {` ${summary.imports.pending_jobs} imports pending, ${summary.imports.review_jobs} awaiting review, ${summary.imports.failed_jobs} failed.`} Pending/review rows are not included. Net savings is not a bank-account balance. Currencies are never combined.</p>
+        </>}
+        <div className="pipeline-actions"><button onClick={() => setShowTransaction(!showTransaction)}>{showTransaction ? 'Cancel transaction' : '+ Add Transaction'}</button><button onClick={() => setShowBudget(!showBudget)}>{showBudget ? 'Cancel budget' : '+ Add Budget'}</button></div>
+        {showTransaction && <section className="pipeline-card"><h2>Add transaction ({currency})</h2><form className="pipeline-form" onSubmit={e => submit(e, false)}>
+            <label>Description<input value={form.description} maxLength={255} required onChange={e => setForm({ ...form, description: e.target.value })}/></label>
+            <label>Amount<input type="number" min={step} step={step} value={form.amount} required onChange={e => setForm({ ...form, amount: e.target.value })}/></label>
+            <label>Type<select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}><option>EXPENSE</option><option>INCOME</option><option>REFUND</option></select></label>
+            <label>Category<input value={form.category} maxLength={100} required onChange={e => setForm({ ...form, category: e.target.value })}/></label>
+            <label>Date<input type="date" value={form.date} required onChange={e => setForm({ ...form, date: e.target.value })}/></label>
+            {form.type === 'REFUND' && <label>Original expense ledger ID<input type="number" min="1" value={form.refundOf} required onChange={e => setForm({ ...form, refundOf: e.target.value })}/></label>}
+            <button disabled={busy} type="submit">Save transaction</button></form></section>}
+        {showBudget && <section className="pipeline-card"><h2>Add budget ({month}, {currency})</h2><form className="pipeline-form" onSubmit={e => submit(e, true)}>
+            <label>Category<input value={budget.category} maxLength={100} required onChange={e => setBudget({ ...budget, category: e.target.value })}/></label>
+            <label>Monthly limit<input type="number" min={step} step={step} value={budget.monthlyLimit} required onChange={e => setBudget({ ...budget, monthlyLimit: e.target.value })}/></label>
+            <button disabled={busy} type="submit">Save budget</button></form></section>}
+        <div className="pipeline-charts">
+            <section className="pipeline-card"><h2>Spending by Category</h2><ResponsiveContainer width="100%" height={250}><BarChart data={categoryData}><XAxis dataKey="category"/><YAxis/><Tooltip formatter={money}/><Bar dataKey="spent" name="Net spending" fill="#6366f1"/></BarChart></ResponsiveContainer></section>
+            <section className="pipeline-card"><h2>Spending vs Budget</h2><ResponsiveContainer width="100%" height={250}><BarChart data={budgetData}><XAxis dataKey="category"/><YAxis/><Tooltip formatter={money}/><Legend/><Bar dataKey="spent" fill="#ef4444"/><Bar dataKey="budget" fill="#6366f1"/></BarChart></ResponsiveContainer></section>
+            <section className="pipeline-card"><h2>Daily Spending Trend</h2><ResponsiveContainer width="100%" height={250}><LineChart data={dailyData}><XAxis dataKey="date"/><YAxis/><Tooltip formatter={money}/><Line dataKey="amount" name="Net spending" stroke="#6366f1"/></LineChart></ResponsiveContainer></section>
+            <section className="pipeline-card"><h2>Income vs Expense</h2><ResponsiveContainer width="100%" height={250}><PieChart><Pie data={pieData} dataKey="value" nameKey="name" outerRadius={85} label>{pieData.map((p, i) => <Cell key={p.name} fill={i ? '#ef4444' : '#22c55e'}/>)}</Pie><Tooltip formatter={money}/><Legend/></PieChart></ResponsiveContainer></section>
         </div>
-    );
+        <section className="pipeline-card"><h2>Recent Transactions</h2>{!recent.length ? <p>No transactions for this month and currency.</p> : <div className="pipeline-table"><table><thead><tr><th>ID / source</th><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Amount</th><th>Action</th></tr></thead><tbody>
+            {recent.map(t => <tr key={t.id}><td>#{t.id}<small>{t.origin}</small>{t.importBatchId && <Link to="/imports">Import history</Link>}</td><td>{t.date}</td><td>{t.description}</td><td>{t.category}</td><td>{t.type}</td><td>{money(t.amount)}</td><td><button disabled={busy} onClick={() => exclude(t.id)}>Exclude from totals</button></td></tr>)}
+        </tbody></table></div>}<p className="pipeline-help">Exclusions retain source history and are not resurrected by repeated imports. Imported corrections use a higher CSV source revision.</p></section>
+    </main></div>;
 }
-
-const styles = {
-    page: { minHeight: '100vh', backgroundColor: '#f8f9fb' },
-    header: {
-        backgroundColor: '#1a1a2e',
-        padding: '1rem 2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    headerTitle: { color: 'white', margin: 0 },
-    headerRight: { display: 'flex', alignItems: 'center', gap: '1rem' },
-    userName: { color: '#a5b4fc' },
-    logoutBtn: {
-        padding: '0.4rem 1rem',
-        backgroundColor: 'transparent',
-        border: '1px solid #6366f1',
-        color: '#a5b4fc',
-        borderRadius: '6px',
-        cursor: 'pointer',
-    },
-    content: { padding: '2rem', maxWidth: '1200px', margin: '0 auto' },
-    cardRow: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '1rem',
-        marginBottom: '1.5rem',
-    },
-    summaryCard: {
-        backgroundColor: 'white',
-        padding: '1.25rem 1.5rem',
-        borderRadius: '16px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04)',
-        border: '1px solid rgba(0,0,0,0.05)',
-    },
-    cardLabel: {
-        margin: 0,
-        color: '#9ca3af',
-        fontSize: '0.75rem',
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-    },
-    cardValue: {
-        margin: '0.4rem 0 0',
-        fontSize: '1.75rem',
-        fontWeight: '700',
-        fontFamily: "'DM Sans', sans-serif",
-        letterSpacing: '-0.02em',
-    },
-    addBtn: {
-        padding: '0.75rem 1.5rem',
-        backgroundColor: '#6366f1',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '1rem',
-        cursor: 'pointer',
-        marginBottom: '1rem',
-    },
-    form: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-        gap: '0.75rem',
-        backgroundColor: 'white',
-        padding: '1.25rem',
-        borderRadius: '12px',
-        marginBottom: '1.5rem',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    },
-    input: {
-        padding: '0.6rem',
-        borderRadius: '6px',
-        border: '1px solid #ddd',
-        fontSize: '0.9rem',
-    },
-    submitBtn: {
-        padding: '0.6rem',
-        backgroundColor: '#22c55e',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-    },
-    chartsGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-        gap: '1rem',
-        marginBottom: '1.5rem',
-    },
-    chartCard: {
-        backgroundColor: 'white',
-        padding: '1.25rem',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    },
-    chartTitle: {
-        margin: '0 0 1rem',
-        color: '#1a1a2e',
-        fontSize: '1rem',
-    },
-    tableCard: {
-        backgroundColor: 'white',
-        padding: '1.25rem',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    },
-    table: { width: '100%', borderCollapse: 'collapse' },
-    tableHeader: { borderBottom: '2px solid #f0f0f0' },
-    th: {
-        padding: '0.75rem',
-        textAlign: 'left',
-        color: '#666',
-        fontSize: '0.875rem',
-    },
-    tableRow: { borderBottom: '1px solid #f9f9f9' },
-    td: { padding: '0.75rem', fontSize: '0.9rem' },
-    loading: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        color: '#666',
-    },
-};

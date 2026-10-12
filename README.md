@@ -15,6 +15,9 @@ All services are orchestrated with Docker Compose, with an Nginx reverse proxy r
 
 ## Features
 
+- **Reliable batch imports** — Authenticated CSV upload, durable processing/history, rejected-row reports, manual-overlap review, source revisions and refunds. [Pipeline guide and evidence](docs/pipeline/README.md).
+- **Currency-aware monthly dashboard** — One canonical ledger for manual and imported entries, month/currency filters, exact totals and import freshness; existing forecasting and profile remain available.
+
 - **JWT authentication** — Stateless auth with BCrypt password hashing. Credentials sent in the request body (not query params).
 - **Transaction management** — Full CRUD with per-user data isolation and ownership checks.
 - **Budget tracking** — Set monthly budgets per category via the UI.

@@ -26,9 +26,10 @@ public class ForecastController {
     public ResponseEntity<Object> getForecast(
         @PathVariable String category,
         @RequestParam double budgetLimit,
+        @RequestParam(defaultValue="USD") String currency,
         @AuthenticationPrincipal User user) {
 
-        Object forecast = forecastService.getForecastForCategory(user, category, budgetLimit);
+        Object forecast = forecastService.getForecastForCategory(user, category, budgetLimit,currency);
         return ResponseEntity.ok(forecast);
     }
     
