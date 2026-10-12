@@ -54,7 +54,7 @@ class BudgetOwnershipTest {
                         .header("Authorization", "Bearer " + intruderToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"category\":\"Food\",\"monthlyLimit\":1,\"month\":1,\"year\":2026}"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
 
         // The owner's limit must be unchanged
         Budget after = budgetRepository.findById(budget.getId()).orElseThrow();
@@ -70,7 +70,7 @@ class BudgetOwnershipTest {
 
         mockMvc.perform(delete("/api/budgets/" + budget.getId())
                         .header("Authorization", "Bearer " + intruderToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
 
         // The owner's budget must still exist
         assertThat(budgetRepository.findById(budget.getId())).isPresent();
@@ -110,7 +110,7 @@ class BudgetOwnershipTest {
     }
 
     private String loginAndGetToken(String email) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())

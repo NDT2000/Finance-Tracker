@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
+import { authClient } from '../api/axios';
 
 export default function Register() {
     const [fullName, setFullName] = useState('');
@@ -18,7 +18,7 @@ export default function Register() {
         setLoading(true);
         setError('');
         try {
-            const response = await api.post('/api/auth/register', {
+            const response = await authClient.authenticate('/api/auth/register', {
                 fullName, email, password,
             });
             login(response.data.token, {
@@ -74,7 +74,7 @@ export default function Register() {
                 <form onSubmit={handleSubmit} style={styles.form}>
                     {field('name', 'Full name', 'text', 'Nayan Taori', fullName, setFullName)}
                     {field('email', 'Email', 'email', 'you@example.com', email, setEmail)}
-                    {field('password', 'Password', 'password', '•••••••• (min 6)', password, setPassword)}
+                    {field('password', 'Password', 'password', '•••••••• (min 15)', password, setPassword)}
 
                     <button
                         className="auth-btn"

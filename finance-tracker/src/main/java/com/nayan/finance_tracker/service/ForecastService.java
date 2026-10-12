@@ -71,10 +71,10 @@ public class ForecastService {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
 
         // Call the Python ML service
-        log.info("Calling ML Service for category: {} with {} transactions", category, txnList.size());
+        log.debug("Forecast service request completed");
 
         Object response = restTemplate.postForObject(ML_SERVICE_URL, entity, Object.class);
-        log.info("ML Service response received for category: {}", category);
+        log.debug("Forecast service request completed");
         return response;
     }
 }

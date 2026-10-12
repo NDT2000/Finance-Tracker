@@ -64,7 +64,7 @@ class TransactionOwnershipTest {
 
     // logs in and extracts the token from the response
     private String loginAndGetToken(String email) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())

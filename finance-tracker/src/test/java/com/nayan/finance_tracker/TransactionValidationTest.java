@@ -43,7 +43,7 @@ class TransactionValidationTest {
     }
 
     private String token() throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"a@example.com\",\"password\":\"password123\"}"))
                 .andReturn();

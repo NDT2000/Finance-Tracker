@@ -46,23 +46,23 @@ class AuthControllerTest {
         // arrange: create a user in the test DB
         User user = User.builder()
             .email("test@example.com")
-            .password(passwordEncoder.encode("password123"))
+            .password(passwordEncoder.encode("A unique long test passphrase 42!"))
             .fullName("Test User")
             .role(Role.USER)
             .build();
         userRepository.save(user);
 
         // act + assert: send credentials in the BODY (Priority 1 fix)
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"test@example.com\",\"password\":\"password123\"}"))
+                .content("{\"email\":\"test@example.com\",\"password\":\"A unique long test passphrase 42!\"}"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.token").isNotEmpty());
     }
 
     @Test
     void login_withWrongPassword_returns401() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
@@ -72,29 +72,29 @@ class AuthControllerTest {
                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.message").value("Invalid email or password"))
+                .andExpect(jsonPath("$.message").value("Invalid email, password or session"))
                 .andExpect(jsonPath("$.path").value("/api/auth/login"));
     }
 
     @Test
     void login_withBlankEmail_returns400() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"\",\"password\":\"password123\"}"))
+                .content("{\"email\":\"\",\"password\":\"A unique long test passphrase 42!\"}"))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     void login_withMalformedEmail_returns400() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"not-an-email\",\"password\":\"password123\"}"))
+                .content("{\"email\":\"not-an-email\",\"password\":\"A unique long test passphrase 42!\"}"))
             .andExpect(status().isBadRequest());
     }
 
     @Test
     void login_withMissingPassword_returns400() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"test@example.com\"}"))
             .andExpect(status().isBadRequest());
@@ -102,16 +102,16 @@ class AuthControllerTest {
 
     @Test
     void register_withExistingEmail_returns409() throws Exception {
-        String body = "{\"fullName\":\"Test User\",\"email\":\"dup@example.com\",\"password\":\"password123\"}";
+        String body = "{\"fullName\":\"Test User\",\"email\":\"dup@example.com\",\"password\":\"A unique long test passphrase 42!\"}";
 
         // First registration succeeds
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/auth/register").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isOk());
 
         // Second registration with the same email is a conflict
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/auth/register").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
             .andExpect(status().isConflict());
@@ -121,14 +121,14 @@ class AuthControllerTest {
     void registerAndLogin_doNotLogEmail(CapturedOutput output) throws Exception {
         String email = "private.person@example.com";
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/auth/register").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"fullName\":\"Test User\",\"email\":\"" + email + "\",\"password\":\"password123\"}"))
+                .content("{\"fullName\":\"Test User\",\"email\":\"" + email + "\",\"password\":\"A unique long test passphrase 42!\"}"))
             .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
+                .content("{\"email\":\"" + email + "\",\"password\":\"A unique long test passphrase 42!\"}"))
             .andExpect(status().isOk());
 
         assertThat(output.getAll()).doesNotContain(email);

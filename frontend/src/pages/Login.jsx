@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
+import { authClient } from '../api/axios';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -17,7 +17,7 @@ export default function Login() {
         setLoading(true);
         setError('');
         try {
-            const response = await api.post('/api/auth/login', {
+            const response = await authClient.authenticate('/api/auth/login', {
                 email,
                 password
             });
@@ -27,7 +27,7 @@ export default function Login() {
             });
             navigate('/dashboard');
         } catch (err) {
-            setError('Invalid email or password');
+            setError(err.response?.status === 429 ? 'Too many attempts. Try again in a minute.' : 'Unable to sign in. Check your credentials or try again later.');
         } finally {
             setLoading(false);
         }

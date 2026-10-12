@@ -32,7 +32,8 @@ public class TransactionService {
                 .build();
 
         Transaction saved = transactionRepository.save(transaction);
-        log.info("Transaction {} created for user {}", saved.getId(), user.getId());
+        log.info("Transaction created for user {}: {}",
+                user.getId(), saved.getId());
         return saved;
         
     }
@@ -42,7 +43,6 @@ public class TransactionService {
     }
 
     public Transaction update(Long id, TransactionDTO dto, User user) {
-        // Only finds the transaction if it belongs to this user
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
@@ -56,11 +56,11 @@ public class TransactionService {
     }
 
     public void delete(Long id, User user) {
-        // Only finds the transaction if it belongs to this user
         Transaction transaction = transactionRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
         transactionRepository.delete(transaction);
         log.info("Transaction {} deleted by user {}", id, user.getId());
     }
+
 }

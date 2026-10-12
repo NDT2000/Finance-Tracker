@@ -81,7 +81,7 @@ class JwtAuthFilterTest {
     void login_withStaleTokenInHeader_stillSucceeds() throws Exception {
         createUser("returning@example.com");
 
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                         .header("Authorization", "Bearer not-a-real-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"returning@example.com\",\"password\":\"password123\"}"))
@@ -95,7 +95,7 @@ class JwtAuthFilterTest {
         // A genuine token (correct secret) whose expiry time is one hour in the past
         long now = System.currentTimeMillis();
         String expiredToken = Jwts.builder()
-                .setSubject("expired@example.com")
+                .setSubject("expired@example.com").setIssuer("finance-tracker")
                 .setIssuedAt(new Date(now - 2 * 60 * 60 * 1000))   // issued 2 hours ago
                 .setExpiration(new Date(now - 60 * 60 * 1000))     // expired 1 hour ago
                 .signWith(Keys.hmacShaKeyFor(HexFormat.of().parseHex(jwtSecret)), SignatureAlgorithm.HS256)
@@ -131,7 +131,7 @@ class JwtAuthFilterTest {
     }
 
     private String loginAndGetToken(String email) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
