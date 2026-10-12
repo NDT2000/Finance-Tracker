@@ -64,4 +64,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: Scan added secrets in Git history
-        run: docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.24.2 git /repo --config /repo/.gitleaks.toml --redact
+        run: |
+          mkdir -p security-reports
+          docker run --rm -v "$PWD:/repo:ro" -v "$PWD/security-reports:/report" ghcr.io/gitleaks/gitleaks:v8.24.2 git /repo --config /repo/.gitleaks.toml --redact --report-format json --report-path /report/gitleaks.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: redacted-secret-scan
+          path: security-reports/gitleaks.json

@@ -143,9 +143,27 @@ were not changed by the tests.
 Final validation: 48 backend tests executed with zero failures/errors/skips,
 including PostgreSQL 15, Redis, migration repeatability, cookie rotation/reuse,
 concurrent refresh, revocation and privacy tests. Five frontend client tests passed;
-production build succeeded and npm audit reported zero vulnerabilities. Gitleaks
-reported no leaks after its narrowly scoped known-test-fixture allowance. Actionlint
+production build succeeded and npm audit reported zero vulnerabilities. The working-tree Gitleaks scan
+reported no leaks after its narrowly scoped known-test-fixture allowance; the full
+Git-history scan found the two historical JWT literals described below. Actionlint
 validated both workflows; base/development/TLS Compose checks passed. Actual HTTPS
 served the frontend with certificate verification and all expected security headers;
 HTTP returned 308. The Java NVD vulnerability scan and public deployment remain
 unverified.
+
+## Historical secret findings requiring review
+
+Full-history scanning identified literal JWT secrets in earlier commits:
+
+- `.env`, line 1, commit `8e4c0cc6cf5209a21e8048c4a07a22b407caa6a7` (`JWT_SECRET`).
+- `.github/workflows/ci-cd.yml`, line 58, commit `942d8082081f2f1e11b29e2ba6d5eac7911935fc` (`APPLICATION_SECURITY_JWT_SECRET`).
+
+Values are deliberately not reproduced here. They are absent from the current
+configuration. If either value was ever used outside a disposable test, rotate
+that deployment's JWT signing key and invalidate its sessions. Establish whether
+these were disposable fixtures before accepting an exact historical baseline.
+No history was rewritten and neither finding was suppressed. The full-history
+Gitleaks gate intentionally remains failing until these findings are resolved or
+reviewed; its redacted report is retained as a CI artifact. Together with the NVD
+scan, it blocks image publication. Working-tree cleanliness does not establish that
+historical credentials are safe or that deployed credentials were rotated.
