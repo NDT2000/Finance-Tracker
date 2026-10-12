@@ -1,56 +1,63 @@
-version: '3.8'
-
 services:
-
   db:
     image: postgres:15
     container_name: finance-db
     environment:
-      POSTGRES_USER: nayan
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       POSTGRES_DB: financedb
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nayan -d financedb"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
       timeout: 5s
-      retries: 5
-
+      retries: 10
+    networks: [internal]
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    command: ["sh", "-c", 'exec redis-server --requirepass "$$REDIS_PASSWORD" --maxmemory 64mb --maxmemory-policy noeviction']
+    healthcheck:
+      test: ["CMD-SHELL", 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
   backend:
-    build:
-      context: ./finance-tracker
-      dockerfile: Dockerfile
-    container_name: finance-backend
-    ports:
-      - "8080:8080"
+    build: ./finance-tracker
     environment:
       SPRING_PROFILES_ACTIVE: docker
       ML_SERVICE_URL: http://ml-service:8000/forecast
-      APPLICATION_SECURITY_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      DB_USERNAME: ${DB_USERNAME:?DB_USERNAME is required}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      AUDIT_LOG_PATH: /var/log/finance
+      HIBERNATE_DDL_AUTO: ${HIBERNATE_DDL_AUTO:-update}
+    volumes:
+      - audit_data:/var/log/finance
     depends_on:
       db:
         condition: service_healthy
-
+      redis:
+        condition: service_healthy
+    networks: [internal]
   ml-service:
-    build:
-      context: ./ml-service
-      dockerfile: Dockerfile
-    container_name: finance-ml
-    ports:
-      - "8000:8000"
-
+    build: ./ml-service
+    networks: [internal]
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: finance-frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-
+    build: ./frontend
+    ports: ["80:80"]
+    depends_on: [backend, ml-service]
+    networks: [edge, internal]
 volumes:
   postgres_data:
+  audit_data:
+networks:
+  edge:
+  internal:
+    internal: true

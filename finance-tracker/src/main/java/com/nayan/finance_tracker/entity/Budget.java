@@ -24,10 +24,10 @@ public class Budget {
     @Column(nullable = false)
     private BigDecimal monthlyLimit;
 
-    @Column(nullable = false)
+    @Column(name = "\"month\"", nullable = false)
     private Integer month;
 
-    @Column(nullable = false)
+    @Column(name = "\"year\"", nullable = false)
     private Integer year;
 
     @ManyToOne(fetch = FetchType.LAZY)

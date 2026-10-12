@@ -31,13 +31,17 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
     private final JwtAuthFilter jwtAuthFilter;
+    private final com.nayan.finance_tracker.security.AuthOriginFilter originFilter;
+    private final com.nayan.finance_tracker.security.ApiErrors errors;
+    @org.springframework.beans.factory.annotation.Value("${application.security.cors.origins}")
+    private java.util.List<String> origins;
 
     // How to load user from the database
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
                 .orElseThrow(() -> 
-                    new UsernameNotFoundException("User not found: " + username));
+                    new UsernameNotFoundException("Invalid credentials"));
     }
 
     // Which requests need auth and which are public
@@ -50,16 +54,14 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
 
             .exceptionHandling(exception -> exception
+                .accessDeniedHandler((request,response,ex) -> errors.send(request,response,org.springframework.http.HttpStatus.FORBIDDEN,"Access denied"))
                 .authenticationEntryPoint((request, response, authException) -> {
-                    response.sendError(
-                        HttpServletResponse.SC_UNAUTHORIZED,
-                        "Authentication is required"
-                    );
+                    errors.send(request,response,org.springframework.http.HttpStatus.UNAUTHORIZED,"Authentication is required");
                 })
             )
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/login","/api/auth/register","/api/auth/refresh","/api/auth/logout").permitAll()
                 .requestMatchers(
                     org.springframework.http.HttpMethod.OPTIONS,
                     "/**"
@@ -72,6 +74,7 @@ public class SecurityConfig {
             )
 
             .authenticationProvider(authenticationProvider())
+            .addFilterBefore(originFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(
                 jwtAuthFilter,
                 UsernamePasswordAuthenticationFilter.class
@@ -87,11 +90,7 @@ public class SecurityConfig {
         org.springframework.web.cors.CorsConfiguration config =
                 new org.springframework.web.cors.CorsConfiguration();
 
-        config.setAllowedOrigins(java.util.List.of(
-            "http://localhost",
-            "http://localhost:5173",
-            "http://127.0.0.1:5173"    
-        ));
+        config.setAllowedOrigins(origins);
         config.setAllowedMethods(
                 java.util.List.of("GET","POST","PUT","DELETE","OPTIONS"));
         config.setAllowedHeaders(java.util.List.of("*"));

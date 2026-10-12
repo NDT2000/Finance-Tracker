@@ -6,10 +6,13 @@ It does not import into application users/transactions/budgets or change the fro
 ## Existing database and migrations
 
 The shared `docker-compose.yml` uses `postgres:15`, named volume `postgres_data`,
-`financedb`, user `nayan`, container `finance-db`, and host port `5432`.
-The mapping is `5432:5432` (all host interfaces by default), not an explicit
-loopback-only bind. Local clients connect to `localhost:5432`; the Docker backend
-uses `db:5432`. Both application profiles use Hibernate `ddl-auto=update`.
+`financedb`, and container `finance-db`. Database credentials are supplied through
+`DB_USERNAME` and `DB_PASSWORD`. The base Compose exposes only Nginx; use
+`docker-compose.dev.yml` to bind PostgreSQL to `127.0.0.1:5432` for this local importer.
+Local clients connect to `localhost:5432`; the Docker backend uses `db:5432`.
+Application development uses Hibernate `ddl-auto=update`; production startup uses
+`validate` after explicit SQL migrations. The test profile uses H2 with `create-drop`.
+
 No Flyway/Liquibase dependency or migration directory exists. The test profile
 uses H2 with `create-drop`.
 
@@ -28,13 +31,14 @@ From the repository root (Python 3.10+):
 python3 -m venv pipeline/venv
 pipeline/venv/bin/python -m pip install -r pipeline/requirements.txt
 # Use your existing Compose database; do not down -v or recreate its volume.
-docker compose up -d db
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
 # Stop application writes briefly while verifying the backup, if necessary.
 BACKUP_DIR="$HOME/finance-tracker-backups" DB_CONTAINER=finance-db bash pipeline/backup.sh
 ```
 
-Compose requires `JWT_SECRET` even when selecting a service; reuse your existing
-ignored `.env` or securely exported value. Do not commit it. The backup script
+Compose requires `DB_USERNAME`, `DB_PASSWORD`, `REDIS_PASSWORD`, and `JWT_SECRET`
+even when selecting a service; reuse your existing ignored `.env` or securely
+exported values. Use the existing database credentials for an existing volume. Do not commit it. The backup script
 creates a custom-format dump, a private globals file (including password hashes),
 checks the dump listing, restores to a uniquely named temporary database, compares
 application row counts and row-content digests, then drops only that temporary

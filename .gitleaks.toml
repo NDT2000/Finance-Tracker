@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+# Public deterministic test fixture, never a deployment credential.
+[allowlist]
+description = "Known JWT fixture in the test profile only"
+condition = "AND"
+paths = ['''(?:^|/)finance-tracker/(?:src/test/resources|target/test-classes)/application-test\.properties$''']
+regexTarget = "secret"
+regexes = ['''^0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef$''']

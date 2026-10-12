@@ -48,7 +48,7 @@ class AuthControllerTest {
         userRepository.save(user);
 
         // act + assert: send credentials in the BODY (Priority 1 fix)
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"test@example.com\",\"password\":\"password123\"}"))
             .andExpect(status().isOk())
@@ -57,7 +57,7 @@ class AuthControllerTest {
 
     @Test
     void login_withWrongPassword_returns401() throws Exception {
-        mockMvc.perform(post("/api/auth/login")
+        mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
@@ -67,6 +67,6 @@ class AuthControllerTest {
                 """))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error")
-                        .value("Invalid email or password"));
+                        .value("Unauthorized"));
 }
 }

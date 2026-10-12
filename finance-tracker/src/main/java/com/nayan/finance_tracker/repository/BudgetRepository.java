@@ -11,6 +11,8 @@ import com.nayan.finance_tracker.entity.User;
 
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
+    java.util.Optional<Budget> findByIdAndUser(Long id, User user);
+
 
     List<Budget> findByUser(User user);
 

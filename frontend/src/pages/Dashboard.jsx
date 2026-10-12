@@ -18,6 +18,7 @@ export default function Dashboard() {
     const [budgets, setBudgets] = useState([]);
     const [forecasts, setForecasts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [logoutError, setLogoutError] = useState('');
 
     // Add transaction form state
     const [showForm, setShowForm] = useState(false);
@@ -115,9 +116,9 @@ export default function Dashboard() {
         }
     };
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
+    const handleLogout = async () => {
+        try { await logout(); navigate('/login'); }
+        catch { setLogoutError('Logout failed. Please try again to revoke your session.'); }
     };
 
     // --- Chart data preparation ---
@@ -180,6 +181,7 @@ export default function Dashboard() {
                     <span style={styles.userName}>
                         Hi, {user?.fullName}
                     </span>
+                    {logoutError && <p role="alert">{logoutError}</p>}
                     <button onClick={handleLogout} style={styles.logoutBtn}>
                         Logout
                     </button>

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+    java.util.Optional<Transaction> findByIdAndUser(Long id, User user);
+
     
     List<Transaction> findByUser(User user);
 

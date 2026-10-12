@@ -64,7 +64,7 @@ class TransactionOwnershipTest {
 
     // logs in and extracts the token from the response
     private String loginAndGetToken(String email) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/auth/login")
+        MvcResult result = mockMvc.perform(post("/api/auth/login").header("Origin","http://localhost").header("X-Requested-With","FinanceTracker")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
@@ -97,7 +97,7 @@ class TransactionOwnershipTest {
                 .header("Authorization", "Bearer " + tokenA)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateRequest))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
 
         Transaction unchangedTransaction =
                 transactionRepository.findById(bsTxn.getId()).orElseThrow();
@@ -120,7 +120,7 @@ class TransactionOwnershipTest {
 
         mockMvc.perform(delete("/api/transactions/{id}", bsTxn.getId())
                 .header("Authorization", "Bearer " + tokenA))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
 
         assertThat(transactionRepository.findById(bsTxn.getId()))
                 .isPresent();
