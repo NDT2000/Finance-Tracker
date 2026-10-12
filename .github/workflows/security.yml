@@ -28,7 +28,7 @@ jobs:
           cache: maven
       - run: bash mvnw --batch-mode verify
         working-directory: finance-tracker
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: security-test-reports
@@ -52,7 +52,7 @@ jobs:
             exit 1
           fi
           bash mvnw --batch-mode org.owasp:dependency-check-maven:12.1.8:check -DfailBuildOnCVSS=7 -DnvdApiKeyEnvironmentVariable=NVD_API_KEY -DassemblyAnalyzerEnabled=false
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: dependency-check-report
@@ -67,7 +67,7 @@ jobs:
         run: |
           mkdir -p security-reports
           docker run --rm -v "$PWD:/repo:ro" -v "$PWD/security-reports:/report" ghcr.io/gitleaks/gitleaks:v8.24.2 git /repo --config /repo/.gitleaks.toml --redact --report-format json --report-path /report/gitleaks.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: redacted-secret-scan
