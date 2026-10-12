@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import {
@@ -181,6 +181,7 @@ export default function Dashboard() {
                     <span style={styles.userName}>
                         Hi, {user?.fullName}
                     </span>
+                    <Link to="/profile" style={{ color: '#6366f1', fontWeight: 600 }}>My profile</Link>
                     {logoutError && <p role="alert">{logoutError}</p>}
                     <button onClick={handleLogout} style={styles.logoutBtn}>
                         Logout
