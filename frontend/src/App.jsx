@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 
 function PrivateRoute({ children}) {
     const{ token, loading } = useAuth();
@@ -21,6 +22,9 @@ function App() {
                         <PrivateRoute>
                             <Dashboard />
                         </PrivateRoute>
+                    } />
+                    <Route path="/profile" element={
+                        <PrivateRoute><Profile /></PrivateRoute>
                     } />
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>

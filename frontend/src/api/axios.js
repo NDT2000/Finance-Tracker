@@ -8,9 +8,9 @@ export function createAuthClient(baseURL = '') {
     let refreshPromise = null;
     let generation = 0;
     let onSession = () => {};
-    function setSession(token, user) {
+    function setSession(token, user, notice = null) {
         accessToken = token;
-        onSession(token, user);
+        onSession(token, user, notice);
     }
     async function refresh() {
         if (!refreshPromise) {
@@ -60,6 +60,17 @@ export function createAuthClient(baseURL = '') {
                 ? navigator.locks.request('finance-session', signIn) : signIn();
         },
         login(token, user) { generation++; setSession(token, user); },
+        updateUser(user) {
+            if (accessToken) { generation++; setSession(accessToken, user); }
+        },
+        async changePassword(currentPassword, newPassword) {
+            // Refresh first: this endpoint's 401 can mean a wrong current password,
+            // so its failures must not trigger generic API refresh/retry behavior.
+            await refresh();
+            await api.post('/api/auth/password', { currentPassword, newPassword });
+            generation++;
+            setSession(null, null, 'Password updated. Please sign in again.'); // All server sessions are revoked.
+        },
         async logout() {
             generation++;
             // Await any rotation so logout revokes the current cookie/session.

@@ -9,7 +9,7 @@ export default function Login() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [focused, setFocused] = useState('');
-    const { login } = useAuth();
+    const { login, notice } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -49,6 +49,11 @@ export default function Login() {
                 <h1 style={styles.title}>Welcome back</h1>
                 <p style={styles.subtitle}>Sign in to your Finance Tracker</p>
 
+                {notice && (
+                    <p role="status" style={{ color: '#86efac', marginBottom: '1rem' }}>
+                        {notice}
+                    </p>
+                )}
                 {error && (
                     <div style={styles.errorBox}>
                         <span>⚠</span> {error}

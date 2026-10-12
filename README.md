@@ -58,6 +58,20 @@ npm install
 npm run dev
 ```
 
+## User profile
+
+Sign in, then choose **My profile** in the dashboard header. The protected `/profile`
+page shows your sign-in email, lets you update your full name, and provides a
+password-change form. Your email is read-only. Changing your password requires
+your current password, revokes all sessions, and returns you to sign-in.
+New passwords follow the existing policy: at least 15 characters, at most 72 UTF-8
+bytes, and rejection of common passwords.
+
+`GET /api/profile` and `PUT /api/profile` derive the owner from the authenticated
+user; the only editable field is `fullName`. Responses contain only name and email.
+This feature reuses the existing users table and password-change endpoint, so no
+additional database migration is needed.
+
 ## Running Tests
 ```bash
 ./mvnw test
