@@ -37,9 +37,7 @@ public class BudgetService {
             .build();
         
         Budget saved = budgetRepository.save(budget);
-        log.info("Budget created for user {}:{} - {}/{}",
-            user.getEmail(), dto.getCategory(),
-            dto.getMonth(), dto.getYear());
+        log.info("Budget created user_id={} budget_id={}", user.getId(), saved.getId());
         
         return saved;
     }
@@ -49,12 +47,8 @@ public class BudgetService {
     }
 
     public Budget update(Long id, BudgetDTO dto, User user) {
-        Budget budget = budgetRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Budget not found"));
-        
-        if(!budget.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
-        }
+        Budget budget = budgetRepository.findByIdAndUser(id, user)
+            .orElseThrow(() -> new com.nayan.finance_tracker.exception.ResourceNotFoundException("Budget not found"));
 
         budget.setMonthlyLimit(dto.getMonthlyLimit());
         return budgetRepository.save(budget);
@@ -62,15 +56,11 @@ public class BudgetService {
     }
 
     public void delete(Long id, User user) {
-        Budget budget = budgetRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Budget not found"));
-        
-        if(!budget.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
-        }
+        Budget budget = budgetRepository.findByIdAndUser(id, user)
+            .orElseThrow(() -> new com.nayan.finance_tracker.exception.ResourceNotFoundException("Budget not found"));
 
         budgetRepository.delete(budget);
-        log.info("Budget {} deleted by {}", id, user.getEmail());
+        log.info("Budget {} deleted by {}", id, user.getId());
     }
     
 }

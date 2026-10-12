@@ -1,83 +1,53 @@
 package com.nayan.finance_tracker.exception;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.nayan.finance_tracker.security.ApiErrors;
+import com.nayan.finance_tracker.security.LoginRateLimiter.*;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.context.request.WebRequest;
+import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
-@RestControllerAdvice
+@RestControllerAdvice @Slf4j
 public class GlobalExceptionHandler {
-
-    // Helper to build the consistent error body
-    private Map<String, Object> buildBody(HttpStatus status, String message, WebRequest request) {
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now().toString());
-        body.put("status", status.value());
-        body.put("error", status.getReasonPhrase());
-        body.put("message", message);
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-        return body;
+    private ResponseEntity<Object> body(HttpStatus status,String message,WebRequest request) {
+        return ResponseEntity.status(status).body(ApiErrors.body(status,message,request.getDescription(false).replace("uri=","")));
     }
-
-    // 404 — resource not found
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Object> handleNotFound(ResourceNotFoundException ex, WebRequest request) {
-        return new ResponseEntity<>(
-            buildBody(HttpStatus.NOT_FOUND, ex.getMessage(), request),
-            HttpStatus.NOT_FOUND);
-    }
-
-    // 403 — user tried to access something they don't own
+    public ResponseEntity<Object> missing(ResourceNotFoundException ex,WebRequest req) { return body(HttpStatus.NOT_FOUND,ex.getMessage(),req); }
     @ExceptionHandler(UnauthorizedAccessException.class)
-    public ResponseEntity<Object> handleForbidden(UnauthorizedAccessException ex, WebRequest request) {
-        return new ResponseEntity<>(
-            buildBody(HttpStatus.FORBIDDEN, ex.getMessage(), request),
-            HttpStatus.FORBIDDEN);
-    }
-
-    // 409 — duplicate resource (THE budget bug you just hit)
+    public ResponseEntity<Object> forbidden(UnauthorizedAccessException ex,WebRequest req) { return body(HttpStatus.FORBIDDEN,"Access denied",req); }
     @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<Object> handleConflict(DuplicateResourceException ex, WebRequest request) {
-        return new ResponseEntity<>(
-            buildBody(HttpStatus.CONFLICT, ex.getMessage(), request),
-            HttpStatus.CONFLICT);
-    }
-
-    // 400 — bean validation failures (@Valid on DTOs)
+    public ResponseEntity<Object> conflict(DuplicateResourceException ex,WebRequest req) { return body(HttpStatus.CONFLICT,ex.getMessage(),req); }
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> constraint(DataIntegrityViolationException ex,WebRequest req) { return body(HttpStatus.CONFLICT,"Request conflicts with existing data",req); }
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleValidation(MethodArgumentNotValidException ex, WebRequest request) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
-            .map(err -> err.getField() + ": " + err.getDefaultMessage())
-            .reduce((a, b) -> a + ", " + b)
-            .orElse("Validation failed");
-        return new ResponseEntity<>(
-            buildBody(HttpStatus.BAD_REQUEST, message, request),
-            HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> validation(MethodArgumentNotValidException ex,WebRequest req) {
+        String message=ex.getBindingResult().getFieldErrors().stream().map(e -> e.getField()+": "+e.getDefaultMessage())
+            .reduce((a,b)->a+", "+b).orElse("Validation failed"); return body(HttpStatus.BAD_REQUEST,message,req);
     }
-
-    // // 500 — catch-all for anything unhandled (last resort)
-    // @ExceptionHandler(Exception.class)
-    // public ResponseEntity<Object> handleGeneric(Exception ex, WebRequest request) {
-    //     return new ResponseEntity<>(
-    //         buildBody(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request),
-    //         HttpStatus.INTERNAL_SERVER_ERROR);
-    // }
+    @ExceptionHandler({HttpMessageNotReadableException.class,org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<Object> malformed(Exception ex,WebRequest req) { return body(HttpStatus.BAD_REQUEST,"Invalid request",req); }
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Map<String, String>> handleAuthenticationException(   
-        AuthenticationException exception) {
-
-        Map<String, String> response = new HashMap<>();
-        response.put("error", "Invalid email or password");
-
-        return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(response);
+    public ResponseEntity<Object> authentication(AuthenticationException ex,WebRequest req) { return body(HttpStatus.UNAUTHORIZED,"Invalid email, password or session",req); }
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<Object> rate(RateLimitException ex,WebRequest req) {
+        return ResponseEntity.status(429).header("Retry-After","60").body(ApiErrors.body(HttpStatus.TOO_MANY_REQUESTS,"Try again later",req.getDescription(false).replace("uri=","")));
+    }
+    @ExceptionHandler(SecurityUnavailableException.class)
+    public ResponseEntity<Object> unavailable(SecurityUnavailableException ex,WebRequest req) { return body(HttpStatus.SERVICE_UNAVAILABLE,"Authentication temporarily unavailable",req); }
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Object> denied(Exception ex,WebRequest req) { return body(HttpStatus.FORBIDDEN,"Access denied",req); }
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> unexpected(Exception ex,WebRequest req) {
+        // Preserve Spring's known HTTP statuses (405, 404, 415, etc.) without exposing details.
+        if (ex instanceof org.springframework.web.ErrorResponse response) {
+            HttpStatus status=HttpStatus.valueOf(response.getStatusCode().value());
+            return body(status,status.getReasonPhrase(),req);
+        }
+        log.error("Unhandled request failure type={}",ex.getClass().getSimpleName());
+        return body(HttpStatus.INTERNAL_SERVER_ERROR,"An unexpected error occurred",req);
     }
 }

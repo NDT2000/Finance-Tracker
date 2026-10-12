@@ -5,7 +5,8 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 
 function PrivateRoute({ children}) {
-    const{ token } = useAuth();
+    const{ token, loading } = useAuth();
+    if (loading) return <p>Loading session…</p>;
     return token ? children : <Navigate to="/login" />;
 }
 

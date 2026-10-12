@@ -20,3 +20,7 @@ dist/
 .idea/
 *.iml
 .DS_Store
+# Runtime audit logs and deployment TLS keys
+logs/
+*.pem
+*.key

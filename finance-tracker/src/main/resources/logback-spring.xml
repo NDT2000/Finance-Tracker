@@ -1,0 +1,19 @@
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <property name="AUDIT_DIR" value="${AUDIT_LOG_PATH:-./logs}"/>
+    <appender name="SECURITY_AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${AUDIT_DIR}/security-audit.log</file>
+        <encoder><pattern>%date{yyyy-MM-dd'T'HH:mm:ss.SSSXXX,UTC} %message%n</pattern></encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${AUDIT_DIR}/security-audit.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>90</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+    <logger name="com.nayan.finance_tracker.security.SecurityAudit" level="INFO">
+        <appender-ref ref="SECURITY_AUDIT"/>
+    </logger>
+    <root level="INFO"><appender-ref ref="CONSOLE"/></root>
+</configuration>
