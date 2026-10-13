@@ -4,7 +4,7 @@
 
 Build a local application where a signed-in user can record expenses or upload CSV exports, inspect validation/results, safely repeat imports, resolve overlaps and corrections/refunds, and see accurate monthly/category summaries without double counting. Preserve the existing profile, budgets and forecasting.
 
-The five pipeline phases are implemented on `feat/reliable-batch-pipeline`; main requires your manual PR acceptance. This is a local development milestone, not a production deployment claim. Cloud hosting, NVD credentials, large framework/runtime migrations and deployment hardening are separate release work, not prerequisites for the pipeline demo.
+The five pipeline phases were merged into main through PR #21. The learning guide and compatible React/React DOM follow-up are on `feat/reliable-batch-pipeline` for your manual review. This is a local development milestone, not a production deployment claim. Cloud hosting, NVD credentials, large framework/runtime migrations and deployment hardening are separate release work, not prerequisites for the pipeline demo.
 
 | Phase | What you can use | Verification |
 | --- | --- | --- |
