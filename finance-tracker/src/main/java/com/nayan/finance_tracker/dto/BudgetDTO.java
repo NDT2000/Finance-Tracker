@@ -26,5 +26,6 @@ public class BudgetDTO {
 
     @NotNull(message = "Year is required")
     private Integer year;
+    private String currency = "USD";
     
 }

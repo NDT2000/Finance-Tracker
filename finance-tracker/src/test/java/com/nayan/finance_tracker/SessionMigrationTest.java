@@ -11,13 +11,14 @@ class SessionMigrationTest {
     @Container static final PostgreSQLContainer<?> DB=new PostgreSQLContainer<>("postgres:15");
     @Test void migrationIsAdditiveRepeatableAndPreservesExistingUsers() throws Exception {
         try (var connection=DriverManager.getConnection(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword())) {
+            org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript(connection,
+                new org.springframework.core.io.ClassPathResource("db/migration/V1__baseline_finance_tracker.sql"));
             try (var statement=connection.createStatement()) {
-                statement.execute("create table public.users(id bigint primary key, email text)");
-                statement.execute("insert into public.users values(1,'preserved@example.com')");
+                statement.execute("insert into public.users(email,password,full_name,role) values('preserved@example.com','test-fixture','Preserved','USER')");
             }
             Flyway flyway=Flyway.configure().dataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword())
                 .baselineOnMigrate(true).baselineVersion("1").load();
-            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(2);
+            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(3);
             assertThat(flyway.migrate().migrationsExecuted).isZero();
             flyway.validate();
             try (var statement=connection.createStatement()) {

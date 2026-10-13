@@ -21,7 +21,7 @@ public class Transaction {
     @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 23, scale = 4)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
@@ -33,6 +33,19 @@ public class Transaction {
 
     @Column(nullable = false)
     private LocalDate date;
+
+    @Builder.Default @Column(nullable=false, length=3)
+    private String currency = "USD";
+    @Builder.Default @Column(nullable=false)
+    private String origin = "MANUAL";
+    @Builder.Default @Column(nullable=false)
+    private String accountRef = "default";
+    private String sourceRecordId;
+    private String importBatchId;
+    private Integer sourceRow;
+    private Long refundOf;
+    @Builder.Default @Column(nullable=false)
+    private boolean deleted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

@@ -13,6 +13,7 @@ import lombok.Data;
 public class TransactionDTO {
     
     @NotBlank(message = "Description is required")
+    @jakarta.validation.constraints.Size(max=255)
     private String description;
 
     @NotNull(message = "Amount is required")
@@ -23,9 +24,16 @@ public class TransactionDTO {
     private TransactionType type;
 
     @NotBlank(message = "Category is required")
+    @jakarta.validation.constraints.Size(max=100)
     private String category;
 
     @NotNull(message = "Date is required")
     private LocalDate date;
+
+    @jakarta.validation.constraints.Pattern(regexp="[A-Z]{3}")
+    private String currency = "USD";
+    @jakarta.validation.constraints.Size(max=80)
+    private String accountRef = "default";
+    private Long refundOf;
 
 }

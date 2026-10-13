@@ -19,10 +19,11 @@ import lombok.extern.slf4j.Slf4j;
 public class BudgetService {
 
     final private BudgetRepository budgetRepository;
+    private final com.nayan.finance_tracker.pipeline.CurrencyRules money;
 
     public Budget create(BudgetDTO dto, User user) {
         // Check if budget already exists for this category/month/year
-        budgetRepository.findByUserAndCategoryAndMonthAndYear(user, dto.getCategory(), dto.getMonth(), dto.getYear())
+        budgetRepository.findByUserAndCategoryAndMonthAndYearAndCurrency(user, dto.getCategory(), dto.getMonth(), dto.getYear(), money.code(dto.getCurrency()))
             .ifPresent(b -> {
                 throw new DuplicateResourceException(
                     "Budget already exists for category " + dto.getCategory() + " in " + dto.getMonth() + "/" + dto.getYear());
@@ -30,7 +31,8 @@ public class BudgetService {
         
         Budget budget = Budget.builder()
             .category(dto.getCategory())
-            .monthlyLimit(dto.getMonthlyLimit())
+            .monthlyLimit(money.amount(dto.getMonthlyLimit(),dto.getCurrency()))
+            .currency(dto.getCurrency())
             .month(dto.getMonth())
             .year(dto.getYear())
             .user(user)
@@ -50,7 +52,7 @@ public class BudgetService {
         Budget budget = budgetRepository.findByIdAndUser(id, user)
             .orElseThrow(() -> new com.nayan.finance_tracker.exception.ResourceNotFoundException("Budget not found"));
 
-        budget.setMonthlyLimit(dto.getMonthlyLimit());
+        budget.setMonthlyLimit(money.amount(dto.getMonthlyLimit(),budget.getCurrency()));
         return budgetRepository.save(budget);
 
     }

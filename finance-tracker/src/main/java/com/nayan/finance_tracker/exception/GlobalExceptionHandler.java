@@ -40,6 +40,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> unavailable(SecurityUnavailableException ex,WebRequest req) { return body(HttpStatus.SERVICE_UNAVAILABLE,"Authentication temporarily unavailable",req); }
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<Object> denied(Exception ex,WebRequest req) { return body(HttpStatus.FORBIDDEN,"Access denied",req); }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> invalidValue(IllegalArgumentException ex,WebRequest req) { return body(HttpStatus.BAD_REQUEST,ex.getMessage()==null?"Invalid value":ex.getMessage(),req); }
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<Object> uploadSize(Exception ex,WebRequest req) { return body(HttpStatus.PAYLOAD_TOO_LARGE,"CSV upload exceeds the size limit",req); }
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> unexpected(Exception ex,WebRequest req) {
         // Preserve Spring's known HTTP statuses (405, 404, 415, etc.) without exposing details.

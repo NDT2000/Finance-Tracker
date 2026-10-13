@@ -1,0 +1,4 @@
+date,category,description,amount,currency,type,source_transaction_id,revision,refund_of
+2026-10-05,Food,Groceries,35.00,USD,EXPENSE,groceries-1,2,
+2026-10-03,Food,Coffee,10.00,USD,EXPENSE,coffee-1,1,
+2026-10-08,Transport,Bus,5.00,USD,EXPENSE,bus-1,1,

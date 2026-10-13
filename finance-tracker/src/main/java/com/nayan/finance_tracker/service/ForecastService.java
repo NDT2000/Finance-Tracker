@@ -36,24 +36,28 @@ public class ForecastService {
             : "http://localhost:8000/forecast";
 
     public Object getForecastForCategory(User user, String category, double budgetLimit) {
+        return getForecastForCategory(user,category,budgetLimit,"USD");
+    }
+    public Object getForecastForCategory(User user, String category, double budgetLimit,String currency) {
+        new com.nayan.finance_tracker.pipeline.CurrencyRules().code(currency);
 
         // Get current month and year
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(java.time.ZoneOffset.UTC);
         int daysInMonth = now.lengthOfMonth();
-        LocalDate start = LocalDate.now().withDayOfMonth(1);
-        LocalDate end = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
+        LocalDate start = LocalDate.now(java.time.ZoneOffset.UTC).withDayOfMonth(1);
+        LocalDate end = LocalDate.now(java.time.ZoneOffset.UTC).withDayOfMonth(LocalDate.now(java.time.ZoneOffset.UTC).lengthOfMonth());
 
         // Get all transactions for this user and category
         // List<Transaction> transactions = transactionRepository.findByUserAndCategory(user, category);
-        List<Transaction> transactions = transactionRepository.findByUserAndCategoryAndTypeAndDateBetween(
-                                            user, category, TransactionType.EXPENSE, start, end);
+        List<Transaction> transactions = transactionRepository.findByUserAndCategoryAndCurrencyAndTypeInAndDateBetweenAndDeletedFalse(
+            user, category, currency, List.of(TransactionType.EXPENSE,TransactionType.REFUND), start, end);
 
 
         // Build the request payload for the ML service
         List<Map<String, Object>> txnList = transactions.stream()   // ← use transactions, not thisMonth
             .map(t -> {
                 Map<String, Object> txn = new HashMap<>();
-                txn.put("amount", t.getAmount().doubleValue());
+                txn.put("amount", t.getType()==TransactionType.REFUND ? t.getAmount().negate().doubleValue() : t.getAmount().doubleValue());
                 txn.put("day", t.getDate().getDayOfMonth());
                 return txn;
         })

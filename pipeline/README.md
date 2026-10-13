@@ -1,3 +1,5 @@
+> This is the retained Day 1 synthetic-only demo. For authenticated product uploads, corrections, refunds, dashboard integration and backfills, use the [product pipeline guide](../docs/pipeline/README.md) and `import_product.py`. These two paths are never added together.
+
 # Day 1: synthetic expense CSV → PostgreSQL
 
 This milestone imports one small expense export, then safely repeats that exact file.
@@ -10,7 +12,7 @@ The shared `docker-compose.yml` uses `postgres:15`, named volume `postgres_data`
 `DB_USERNAME` and `DB_PASSWORD`. The base Compose exposes only Nginx; use
 `docker-compose.dev.yml` to bind PostgreSQL to `127.0.0.1:5432` for this local importer.
 Local clients connect to `localhost:5432`; the Docker backend uses `db:5432`.
-The application uses Flyway V1/V2/V3 migrations and Hibernate `ddl-auto=validate`. The test profile uses H2 with `create-drop`.
+The application uses Flyway V1–V4 migrations and Hibernate `ddl-auto=validate`. The test profile uses H2 with `create-drop`.
 
 The application uses Flyway migrations, including financial accounts and auth sessions.
 The separate pipeline setup uses the numbered administrator-only SQL script

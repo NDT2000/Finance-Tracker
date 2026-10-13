@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import Imports from './pages/Imports';
 
 function PrivateRoute({ children}) {
     const{ token, loading } = useAuth();
@@ -26,6 +27,7 @@ function App() {
                     <Route path="/profile" element={
                         <PrivateRoute><Profile /></PrivateRoute>
                     } />
+                    <Route path="/imports" element={<PrivateRoute><Imports /></PrivateRoute>} />
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>
             </BrowserRouter>

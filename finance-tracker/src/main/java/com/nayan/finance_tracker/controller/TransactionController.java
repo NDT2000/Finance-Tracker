@@ -44,9 +44,11 @@ public class TransactionController {
     
     @GetMapping
     public ResponseEntity<List<Transaction>> getAll(
+        @RequestParam(required=false) String month,
+        @RequestParam(required=false) String currency,
         @AuthenticationPrincipal User user) {
 
-        return ResponseEntity.ok(transactionService.getAllForUser(user));
+        return ResponseEntity.ok(month==null && currency==null ? transactionService.getAllForUser(user) : transactionService.forPeriod(user,month,currency==null?"USD":currency));
     }
 
     @PutMapping("/{id}")
@@ -67,4 +69,8 @@ public class TransactionController {
         return ResponseEntity.noContent().build();
     }
     
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<Transaction> restore(@PathVariable Long id,@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(transactionService.restore(id,user));
+    }
 }
