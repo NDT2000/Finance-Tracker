@@ -99,3 +99,7 @@ Docker/Compose is useful to run the local components. Redis supports the existin
 Stable source IDs allow automatic identity across exports. Unidentified overlapping exports require explicit review; the system does not guess. There is no FX conversion, financial-account balance reconciliation, streaming or external orchestration framework. Imported data has a defined CSV contract rather than automatic support for every bank format. Historical records default to USD to preserve the previous dollar-based app behavior; real historical currency correctness needs review.
 
 Local functional evidence is recorded in [verification](pipeline/verification.md). Production deployment, GitHub CI approval and the existing NVD-key/historical-secret gates remain separate and unverified. Completing the local goal does not imply these release requirements are complete.
+
+## Financial planning scenarios
+
+The dashboard now links to saved what-if scenarios with income, spending, investment contributions, loan repayments and investment withdrawals. Learn owner-scoped CRUD, exact decimal arithmetic, recurring-event expansion, cash versus investment transfers and transactional consistency through the [planning guide and hand-worked example](financial-planning.md). Scenarios are separate from actual transactions and existing forecasting.

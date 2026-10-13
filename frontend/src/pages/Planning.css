@@ -1,0 +1,7 @@
+.planning-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:1rem; margin:1.5rem 0; align-items:end; }
+.planning-fields input,.planning-fields select { width:100%; min-width:0; }
+.pipeline-page .planning-primary { background:#4f46e5; color:white; }
+
+.planning-page .pipeline-controls label { min-width:0; max-width:100%; }
+.planning-page .pipeline-controls select { min-width:0; width:100%; }
+.planning-page .pipeline-card { min-width:0; }
