@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Imports from './pages/Imports';
+import Planning from './pages/Planning';
 
 function PrivateRoute({ children}) {
     const{ token, loading } = useAuth();
@@ -27,6 +28,7 @@ function App() {
                     <Route path="/profile" element={
                         <PrivateRoute><Profile /></PrivateRoute>
                     } />
+                    <Route path="/planning" element={<PrivateRoute><Planning /></PrivateRoute>} />
                     <Route path="/imports" element={<PrivateRoute><Imports /></PrivateRoute>} />
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>

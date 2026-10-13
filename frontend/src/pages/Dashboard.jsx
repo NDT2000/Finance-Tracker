@@ -80,7 +80,7 @@ export default function Dashboard() {
     const pieData = summary ? [{ name: 'Income', value: Number(summary.income) }, { name: 'Net expenses', value: Number(summary.netExpenses) }].filter(d => d.value > 0) : [];
     const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 10);
     return <div className="pipeline-page"><header><Link to="/dashboard">Finance Tracker</Link><nav>
-        <span>Hi, {user?.fullName}</span><Link to="/imports">Batch imports</Link><Link to="/profile">My profile</Link>
+        <span>Hi, {user?.fullName}</span><Link to="/planning">Financial planning</Link><Link to="/imports">Batch imports</Link><Link to="/profile">My profile</Link>
         <button onClick={async () => { try { await logout(); navigate('/login'); } catch { setError('Logout failed. Please try again.'); } }}>Logout</button>
     </nav></header><main><h1>Your finances</h1>
         <div className="pipeline-controls"><label>Month<input type="month" value={month} onChange={e => { if (e.target.value) setMonth(e.target.value); }}/></label>
