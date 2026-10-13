@@ -18,7 +18,7 @@ The five pipeline phases were merged into main through PR #21. The learning guid
 
 - Dashboard: selected month and currency; income, expenses net of refunds, net savings, refunds, category spending, budgets, daily trend and recent canonical entries. Current-month budgets retain ML forecasts. Net savings is a monthly flow, not a bank balance.
 - Batch imports: upload/account namespace, upload progress, queued/processing state, history, row results, errors, overlap decisions, exact source download, rejected JSON and retry/re-evaluation.
-- Profile: current name/email, name update, password change with session handling and logout. Existing authentication and ownership controls remain.
+- Profile: a two-option menu for read-only personal details/password change and multiple saved bank accounts with add/delete controls. Existing authentication and ownership controls remain.
 - Freshness: query time, latest committed import and pending/review/failed import counts. These describe ingestion state, not proof a bank export contains every latest transaction.
 
 ## Follow one record through the system

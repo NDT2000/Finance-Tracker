@@ -3,17 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import './Profile.css';
+import BankAccounts from './BankAccounts';
 
 export default function Profile() {
-    const { user, updateUser, changePassword, logout } = useAuth();
+    const { user, changePassword, logout } = useAuth();
     const navigate = useNavigate();
     const [fullName, setFullName] = useState(user?.fullName || '');
     const [email, setEmail] = useState(user?.email || '');
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState('');
-    const [saving, setSaving] = useState(false);
-    const [nameStatus, setNameStatus] = useState('');
-    const [nameError, setNameError] = useState('');
+    const [section, setSection] = useState('personal');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmation, setConfirmation] = useState('');
@@ -32,24 +31,9 @@ export default function Profile() {
         return () => { active = false; };
     }, []);
 
-    const busy = saving || changingPassword || loggingOut;
+    const busy = changingPassword || loggingOut;
     const initials = (user?.fullName || 'User').trim().split(/\s+/)
         .filter(Boolean).map(word => Array.from(word)[0]).slice(0, 2).join('').toUpperCase();
-
-    async function saveName(event) {
-        event.preventDefault();
-        if (busy) return;
-        setNameError(''); setNameStatus('');
-        if (!fullName.trim()) { setNameError('Enter your full name.'); return; }
-        setSaving(true);
-        try {
-            const { data } = await api.put('/api/profile', { fullName: fullName.trim() });
-            setFullName(data.fullName); setEmail(data.email); updateUser(data);
-            setNameStatus('Your profile has been updated.');
-        } catch (error) {
-            setNameError(error.response?.data?.message || 'Your profile could not be saved. Please try again.');
-        } finally { setSaving(false); }
-    }
 
     async function savePassword(event) {
         event.preventDefault();
@@ -93,27 +77,30 @@ export default function Profile() {
                 <div className="profile-heading">
                     <div className="profile-avatar" aria-hidden="true">{initials}</div>
                     <div><p className="profile-eyebrow">YOUR ACCOUNT</p><h1>My profile</h1>
-                        <p>Manage your account details and keep your sign-in secure.</p></div>
+                        <p>View your personal details, change your password and manage bank accounts.</p></div>
                 </div>
                 {logoutError && <p className="profile-error" role="alert">{logoutError}</p>}
                 {loading ? <p role="status">Loading your profile…</p> : loadError ? (
                     <p className="profile-error" role="alert">{loadError}</p>
                 ) : (
-                    <div className="profile-grid">
+                    <div className="profile-layout">
+                        <nav className="profile-menu" aria-label="Profile menu">
+                            <button type="button" aria-pressed={section === 'personal'} disabled={busy} onClick={() => setSection('personal')}>Personal details</button>
+                            <button type="button" aria-pressed={section === 'banks'} disabled={busy} onClick={() => {
+                                setSection('banks'); setCurrentPassword(''); setNewPassword(''); setConfirmation(''); setPasswordError('');
+                            }}>Bank accounts</button>
+                        </nav>
+                        {section === 'banks' ? <BankAccounts/> : <div className="profile-grid" id="profile-personal-panel">
                         <section className="profile-card" aria-labelledby="details-title">
-                            <h2 id="details-title">Account details</h2>
-                            <p>Your name appears in your dashboard greeting.</p>
-                            <form onSubmit={saveName}>
+                            <h2 id="details-title">Personal details</h2>
+                            <div className="profile-details">
                                 <label htmlFor="profile-name">Full name</label>
-                                <input id="profile-name" autoComplete="name" value={fullName} maxLength={100} required
-                                    onChange={event => { setFullName(event.target.value); setNameStatus(''); }} disabled={busy} />
+                                <input id="profile-name" autoComplete="name" value={fullName} readOnly aria-describedby="name-help"/>
+                                <p id="name-help" className="profile-help">Your full name cannot be changed.</p>
                                 <label htmlFor="profile-email">Email address</label>
-                                <input id="profile-email" type="email" autoComplete="email" value={email} readOnly aria-describedby="email-help" />
+                                <input id="profile-email" type="email" autoComplete="email" value={email} readOnly aria-describedby="email-help"/>
                                 <p id="email-help" className="profile-help">Your sign-in email is read-only.</p>
-                                {nameError && <p className="profile-error" role="alert">{nameError}</p>}
-                                {nameStatus && <p className="profile-success" role="status">{nameStatus}</p>}
-                                <button className="profile-primary" type="submit" disabled={busy}>{saving ? 'Saving…' : 'Save changes'}</button>
-                            </form>
+                            </div>
                         </section>
                         <section className="profile-card" aria-labelledby="password-title">
                             <h2 id="password-title">Change password</h2>
@@ -133,6 +120,7 @@ export default function Profile() {
                                 <button className="profile-primary" type="submit" disabled={busy}>{changingPassword ? 'Updating…' : 'Update password'}</button>
                             </form>
                         </section>
+                        </div>}
                     </div>
                 )}
             </main>

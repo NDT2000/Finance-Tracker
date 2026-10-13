@@ -62,31 +62,31 @@ class UserProfileTest {
             .andExpect(content().json("{\"fullName\":\"Alice\",\"email\":\"alice@example.com\"}",true))
             .andExpect(jsonPath("$.password").doesNotExist()).andExpect(jsonPath("$.role").doesNotExist());
     }
-    @Test void updateChangesOnlyOwnNameAndRefreshUsesUpdatedName() throws Exception {
+    @Test void nameUpdatesAreRejectedAndRefreshKeepsOriginalName() throws Exception {
         User alice=user("alice@example.com","Alice"); User bob=user("bob@example.com","Bob");
         MvcResult signedIn=login("alice@example.com"); String access=token(signedIn);
         mvc.perform(put("/api/profile").header("Authorization","Bearer "+access).contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(Map.of("fullName","  Alice Updated  ","email",bob.getEmail(),
                 "id",bob.getId(),"role","ADMIN","password","an injected password"))))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Alice Updated"))
-            .andExpect(jsonPath("$.email").value("alice@example.com"));
+            .andExpect(status().isMethodNotAllowed());
         User updated=users.findById(alice.getId()).orElseThrow();
+        assertThat(updated.getFullName()).isEqualTo("Alice");
         assertThat(updated.getRole()).isEqualTo(Role.USER);
         assertThat(passwords.matches(PASSWORD,updated.getPassword())).isTrue();
         assertThat(users.findById(bob.getId()).orElseThrow().getFullName()).isEqualTo("Bob");
         mvc.perform(get("/api/profile").header("Authorization","Bearer "+access))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Alice Updated"));
+            .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Alice"));
         String refresh=signedIn.getResponse().getHeader("Set-Cookie").split(";",2)[0].split("=",2)[1];
         mvc.perform(post("/api/auth/refresh").header("Origin","http://localhost")
             .header("X-Requested-With","FinanceTracker").cookie(new jakarta.servlet.http.Cookie("finance_refresh",refresh)))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Alice Updated"));
+            .andExpect(status().isOk()).andExpect(jsonPath("$.fullName").value("Alice"));
     }
-    @Test void invalidNamesLeaveStoredProfileUnchanged() throws Exception {
+    @Test void allNameEditsAreDisallowed() throws Exception {
         User alice=user("alice@example.com","Alice"); String access=token(login(alice.getEmail()));
         for (String name : new String[]{"   ","x".repeat(101)}) {
             mvc.perform(put("/api/profile").header("Authorization","Bearer "+access).contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(Map.of("fullName",name))))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isMethodNotAllowed());
         }
         assertThat(users.findById(alice.getId()).orElseThrow().getFullName()).isEqualTo("Alice");
     }

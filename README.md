@@ -66,16 +66,24 @@ npm run dev
 ## User profile
 
 Sign in, then choose **My profile** in the dashboard header. The protected `/profile`
-page shows your sign-in email, lets you update your full name, and provides a
-password-change form. Your email is read-only. Changing your password requires
-your current password, revokes all sessions, and returns you to sign-in.
-New passwords follow the existing policy: at least 15 characters, at most 72 UTF-8
-bytes, and rejection of common passwords.
+page has two menu options:
 
-`GET /api/profile` and `PUT /api/profile` derive the owner from the authenticated
-user; the only editable field is `fullName`. Responses contain only name and email.
-This feature reuses the existing users table and password-change endpoint, so no
-additional database migration is needed.
+- **Personal details:** read-only full name and email, plus password change. Name
+  updates are disabled on the server as well as in the UI.
+- **Bank accounts:** save multiple named account entries with type and currency;
+  delete an entry with confirmation. These are account labels, not live bank
+  connections. Deleting an entry preserves transactions and import history.
+
+Changing your password requires your current password, revokes all sessions, and
+returns you to sign-in. New passwords retain the existing 15-character minimum,
+72 UTF-8-byte maximum and common-password checks.
+
+`GET /api/profile` returns only name and email; `PUT /api/profile` is no longer
+supported. `GET/POST /api/accounts` and `DELETE /api/accounts/{id}` use the
+signed-in owner. Other users' records are never listed or deleted; names must be
+unique for that owner, ignoring case. No bank credentials or account numbers are
+stored by this page. The existing users and financial_accounts tables are reused,
+so no additional database migration is needed.
 
 ## Running Tests
 ```bash
