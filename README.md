@@ -15,6 +15,8 @@ All services are orchestrated with Docker Compose, with an Nginx reverse proxy r
 
 ## Features
 
+Start with the [project learning guide](docs/learning-guide.md) for the completed goal, sample walkthrough, application features and concepts to learn.
+
 - **Reliable batch imports** — Authenticated CSV upload, durable processing/history, rejected-row reports, manual-overlap review, source revisions and refunds. [Pipeline guide and evidence](docs/pipeline/README.md).
 - **Currency-aware monthly dashboard** — One canonical ledger for manual and imported entries, month/currency filters, exact totals and import freshness; existing forecasting and profile remain available.
 
