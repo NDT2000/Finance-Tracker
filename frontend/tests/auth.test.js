@@ -63,7 +63,7 @@ test('logout failure remains visible and preserves session for retry', async () 
     await assert.rejects(client.logout()); assert.equal(state, 'old');
 });
 
-test('profile update changes display information without changing authentication', async () => {
+test('session display information can be synchronized without changing authentication', async () => {
     const client = createAuthClient(); let state;
     client.subscribe((token, user) => { state = { token, user }; });
     client.login('access', { fullName: 'Original', email: 'user@example.com' });

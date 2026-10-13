@@ -12,6 +12,8 @@ public interface FinancialAccountRepository
 
     List<FinancialAccount> findByUserOrderByCreatedAtAsc(User user);
 
+    boolean existsByUserAndNameIgnoreCase(User user, String name);
+
     Optional<FinancialAccount> findByIdAndUser(
         Long id,
         User user
