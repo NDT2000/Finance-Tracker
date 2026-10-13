@@ -1,26 +1,35 @@
 version: 2
+# Pause routine version-update PRs during the local learning milestone.
+# Dependabot security-update PRs are controlled separately and remain enabled.
+# Resume routine updates by removing these limits or setting a small positive limit.
 updates:
   - package-ecosystem: maven
     directory: /finance-tracker
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
   - package-ecosystem: npm
     directory: /frontend
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
   - package-ecosystem: pip
     directory: /pipeline
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
   - package-ecosystem: docker
     directory: /finance-tracker
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
   - package-ecosystem: docker
     directory: /frontend
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0

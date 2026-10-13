@@ -2,6 +2,8 @@
 
 The product now has one canonical ledger: `public.transactions`. Authenticated manual entries and reviewed/imported entries feed that ledger; dashboard, budgets and forecasting read it. The separate Day 1 synthetic `raw.expenses` demo remains available but is deliberately excluded from product totals.
 
+For a learning-focused walkthrough, application feature list and technical concept map, see [the project learning guide](../learning-guide.md).
+
 ## What is implemented
 
 | Phase | Delivered | Evidence |
