@@ -1,3 +1,4 @@
+import Brand from '../components/Brand';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -59,7 +60,7 @@ export default function Register() {
 
             <div style={styles.card}>
                 <div style={styles.logoWrap}>
-                    <div style={styles.logo}>₹</div>
+                    <Brand to="/login" dark />
                 </div>
 
                 <h1 style={styles.title}>Create account</h1>
@@ -145,19 +146,6 @@ const styles = {
         display: 'flex',
         justifyContent: 'center',
         marginBottom: '1.5rem',
-    },
-    logo: {
-        width: '52px',
-        height: '52px',
-        borderRadius: '16px',
-        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '1.5rem',
-        color: 'white',
-        fontWeight: '700',
-        boxShadow: '0 8px 20px rgba(99,102,241,0.4)',
     },
     title: {
         textAlign: 'center',

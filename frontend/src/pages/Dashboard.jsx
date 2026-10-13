@@ -1,3 +1,4 @@
+import AppHeader from '../components/AppHeader';
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -79,10 +80,10 @@ export default function Dashboard() {
     const dailyData = (summary?.byDay || []).map(d => ({ date: d.date, amount: Number(d.amount) }));
     const pieData = summary ? [{ name: 'Income', value: Number(summary.income) }, { name: 'Net expenses', value: Number(summary.netExpenses) }].filter(d => d.value > 0) : [];
     const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 10);
-    return <div className="pipeline-page"><header><Link to="/dashboard">Finance Tracker</Link><nav>
-        <span>Hi, {user?.fullName}</span><Link to="/planning">Financial planning</Link><Link to="/imports">Batch imports</Link><Link to="/profile">My profile</Link>
+    return <div className="pipeline-page"><AppHeader>
+        <span>Hi, {user?.fullName}</span>
         <button onClick={async () => { try { await logout(); navigate('/login'); } catch { setError('Logout failed. Please try again.'); } }}>Logout</button>
-    </nav></header><main><h1>Your finances</h1>
+    </AppHeader><main><h1>Your finances</h1>
         <div className="pipeline-controls"><label>Month<input type="month" value={month} onChange={e => { if (e.target.value) setMonth(e.target.value); }}/></label>
             <label>Currency<select value={currency} onChange={e => setCurrency(e.target.value)}>{currencies.map(c => <option key={c.code}>{c.code}</option>)}</select></label>
             <button onClick={load}>Refresh dashboard</button></div>
