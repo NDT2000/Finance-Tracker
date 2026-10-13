@@ -16,7 +16,7 @@ The five pipeline phases were merged into main through PR #21. The learning guid
 
 ## What the application shows
 
-- Dashboard: selected month and currency; income, expenses net of refunds, net savings, refunds, category spending, budgets, daily trend and recent canonical entries. Current-month budgets retain ML forecasts. Net savings is a monthly flow, not a bank balance.
+- Dashboard: selected month and currency; income, expenses net of refunds, net savings, refunds, category spending, budgets, daily trend and recent canonical entries with bank selection/assignment. CSV reports download your expenses, refunds and income with date/currency/type/account filters. Current-month budgets retain ML forecasts. Net savings is a monthly flow, not a bank balance.
 - Batch imports: upload/account namespace, upload progress, queued/processing state, history, row results, errors, overlap decisions, exact source download, rejected JSON and retry/re-evaluation.
 - Profile: a two-option menu for read-only personal details/password change and multiple saved bank accounts with add/delete controls. Existing authentication and ownership controls remain.
 - Freshness: query time, latest committed import and pending/review/failed import counts. These describe ingestion state, not proof a bank export contains every latest transaction.
@@ -59,6 +59,7 @@ Use a fresh synthetic user to make the totals easy to check. Use the existing se
 | --- | --- | --- |
 | HTTP/API and multipart requests | Browser sends a request; server validates and returns a status/result | Upload, status/results, profile and dashboard routes |
 | Authentication vs authorization | Identify the user, then verify they own the requested data | Protected routes and owner-scoped queries |
+| Bank association and reporting | Link financial records to saved accounts and export owner-scoped CSV reports | [Bank transactions and exports](bank-transactions-and-export.md) |
 | Relational data and foreign keys | Tables relate users, transactions, batches, rows and refund parents | PostgreSQL model/Flyway V4 |
 | Schema migration | Versioned SQL changes the database without recreating existing data | Flyway; Hibernate `validate` checks compatibility |
 | File contract and validation | Agree on columns/types/limits; explain data that doesn't satisfy them | CSV parser and rejected rows |

@@ -35,5 +35,7 @@ public class TransactionDTO {
     @jakarta.validation.constraints.Size(max=80)
     private String accountRef = "default";
     private Long refundOf;
+    @Positive
+    private Long bankAccountId;
 
 }

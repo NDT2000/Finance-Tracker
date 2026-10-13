@@ -63,6 +63,18 @@ npm install
 npm run dev
 ```
 
+## Bank-linked transactions and downloads
+
+Choose one of your saved bank accounts when adding an expense or income; refunds
+use their original expense's account. Recent entries can also be assigned to a
+bank without changing their financial values or import source history.
+
+The dashboard's **Download transactions** section exports expenses, refunds and
+income as a CSV report, with optional month/currency/type/account filters. See
+[bank associations, migration and export contract](docs/bank-transactions-and-export.md).
+Back up existing data before the first V5 upgrade; existing transactions remain
+unassigned until an account is chosen.
+
 ## User profile
 
 Sign in, then choose **My profile** in the dashboard header. The protected `/profile`
@@ -82,8 +94,8 @@ returns you to sign-in. New passwords retain the existing 15-character minimum,
 supported. `GET/POST /api/accounts` and `DELETE /api/accounts/{id}` use the
 signed-in owner. Other users' records are never listed or deleted; names must be
 unique for that owner, ignoring case. No bank credentials or account numbers are
-stored by this page. The existing users and financial_accounts tables are reused,
-so no additional database migration is needed.
+stored by this page. The profile menu reuses existing tables; the transaction-bank association is
+added by Flyway V5.
 
 ## Running Tests
 ```bash

@@ -18,7 +18,7 @@ class SessionMigrationTest {
             }
             Flyway flyway=Flyway.configure().dataSource(DB.getJdbcUrl(),DB.getUsername(),DB.getPassword())
                 .baselineOnMigrate(true).baselineVersion("1").load();
-            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(3);
+            assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);
             assertThat(flyway.migrate().migrationsExecuted).isZero();
             flyway.validate();
             try (var statement=connection.createStatement()) {

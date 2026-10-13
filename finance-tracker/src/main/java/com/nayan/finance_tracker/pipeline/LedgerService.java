@@ -14,6 +14,7 @@ public class LedgerService {
   private final UserRepository users;
   private final TransactionRepository transactions;
   private final CurrencyRules money;
+  private final FinancialAccountRepository accounts;
 
   /** Every canonical writer takes this owner lock inside its database transaction. */
   public User lock(Long owner) {
@@ -23,6 +24,16 @@ public class LedgerService {
   public void validate(Transaction value, User user) {
     value.setCurrency(money.code(value.getCurrency()));
     value.setAmount(money.amount(value.getAmount(), value.getCurrency()));
+    if (value.getBankAccountId() != null) {
+      var bank =
+          accounts
+              .findByIdAndUser(value.getBankAccountId(), user)
+              .filter(a -> a.getStatus() == AccountStatus.ACTIVE)
+              .orElseThrow(() -> new ResourceNotFoundException("Bank account not found"));
+      if (!bank.getCurrency().equals(value.getCurrency()))
+        throw new IllegalArgumentException("Transaction currency must match the bank account");
+      value.setBankAccountName(bank.getName());
+    }
     if (value.getAccountRef() == null
         || value.getAccountRef().isBlank()
         || value.getAccountRef().length() > 80)
@@ -42,6 +53,11 @@ public class LedgerService {
           || !parent.getCategory().equals(value.getCategory()))
         throw new IllegalArgumentException(
             "Refund currency and category must match the original expense");
+      if (value.getBankAccountId() != null
+          && !Objects.equals(value.getBankAccountId(), parent.getBankAccountId()))
+        throw new IllegalArgumentException("Refund must use the original expense's bank account");
+      value.setBankAccountId(parent.getBankAccountId());
+      value.setBankAccountName(parent.getBankAccountName());
       value.setAccountRef(parent.getAccountRef());
       BigDecimal other =
           transactions.findByUserAndRefundOfAndDeletedFalse(user, parent.getId()).stream()
@@ -63,7 +79,8 @@ public class LedgerService {
                   .anyMatch(
                       t ->
                           !t.getCurrency().equals(value.getCurrency())
-                              || !t.getCategory().equals(value.getCategory()))))
+                              || !t.getCategory().equals(value.getCategory())
+                              || !Objects.equals(t.getBankAccountId(), value.getBankAccountId()))))
         throw new IllegalArgumentException("Correction would invalidate existing refunds");
     }
   }
