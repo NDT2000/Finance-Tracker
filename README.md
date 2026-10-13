@@ -13,6 +13,10 @@ A microservice architecture with four containerized services:
 
 All services are orchestrated with Docker Compose, with an Nginx reverse proxy routing frontend traffic to the backend.
 
+## Contributions and suggestions
+
+Suggestions and bug reports are welcome through [GitHub Issues](https://github.com/NDT2000/Finance-Tracker/issues/new/choose). For code changes, fork the repository and submit a pull request to `main`; see [CONTRIBUTING.md](CONTRIBUTING.md). The owner reviews and manually merges accepted changes. [Maintainer settings and GitHub Pages feasibility](docs/github-contributions.md) explain the separate GitHub configuration required.
+
 ## Features
 
 Start with the [project learning guide](docs/learning-guide.md) for the completed goal, sample walkthrough, application features and concepts to learn.
