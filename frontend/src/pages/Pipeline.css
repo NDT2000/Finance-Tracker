@@ -25,3 +25,5 @@
 .pipeline-charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:1rem; }
 .pipeline-charts .pipeline-card { min-width:0; }
 @media(max-width:600px) { .pipeline-card { padding:1rem; } .pipeline-form label { width:100%; } .pipeline-form input { width:100%; } }
+
+.pipeline-export-field { display:flex; flex-direction:column; gap:.5rem; max-width:100%; min-width:0; }

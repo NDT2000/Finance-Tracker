@@ -126,6 +126,8 @@ public class BatchProcessor {
       Transaction copy = new Transaction();
       copy.setId(tx.getId());
       copy.setDeleted(tx.isDeleted());
+      copy.setBankAccountId(tx.getBankAccountId());
+      copy.setBankAccountName(tx.getBankAccountName());
       assign(copy, value, batch, row.number(), account, owner);
       tx.setDate(copy.getDate());
       tx.setCategory(copy.getCategory());

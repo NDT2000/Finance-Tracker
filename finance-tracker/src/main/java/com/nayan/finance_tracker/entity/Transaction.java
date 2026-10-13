@@ -44,6 +44,9 @@ public class Transaction {
     private String importBatchId;
     private Integer sourceRow;
     private Long refundOf;
+    private Long bankAccountId;
+    @Column(length=100)
+    private String bankAccountName;
     @Builder.Default @Column(nullable=false)
     private boolean deleted = false;
 

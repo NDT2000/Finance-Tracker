@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TransactionService {
   private final TransactionRepository transactions;
   private final LedgerService ledger;
+  private final com.nayan.finance_tracker.repository.FinancialAccountRepository accounts;
 
   private void assign(Transaction t, TransactionDTO dto) {
     t.setDescription(dto.getDescription());
@@ -26,6 +27,8 @@ public class TransactionService {
     t.setCurrency(dto.getCurrency());
     t.setAccountRef(dto.getAccountRef());
     t.setRefundOf(dto.getRefundOf());
+    t.setBankAccountId(dto.getBankAccountId());
+    t.setBankAccountName(null);
   }
 
   public Transaction create(TransactionDTO dto, User user) {
@@ -67,6 +70,36 @@ public class TransactionService {
     assign(copy, dto);
     ledger.validate(copy, user);
     assign(t, dto);
+    t.setBankAccountId(copy.getBankAccountId());
+    t.setBankAccountName(copy.getBankAccountName());
+    return transactions.save(t);
+  }
+
+  public Transaction assignBank(Long id, Long bankAccountId, User user) {
+    user = ledger.lock(user.getId());
+    Transaction t = owned(id, user);
+    if (t.getType() == TransactionType.REFUND)
+      throw new IllegalArgumentException(
+          "Assign the bank account on the original expense; refunds follow it");
+    String name = null;
+    if (bankAccountId != null) {
+      var bank =
+          accounts
+              .findByIdAndUser(bankAccountId, user)
+              .filter(a -> a.getStatus() == AccountStatus.ACTIVE)
+              .orElseThrow(() -> new ResourceNotFoundException("Bank account not found"));
+      if (!bank.getCurrency().equals(t.getCurrency()))
+        throw new IllegalArgumentException("Transaction currency must match the bank account");
+      name = bank.getName();
+    }
+    t.setBankAccountId(bankAccountId);
+    t.setBankAccountName(name);
+    // Association is application metadata, not an alteration of the source financial event.
+    // Include excluded refunds so explicitly restoring one stays consistent with its purchase.
+    for (var refund : transactions.findByUserAndRefundOf(user, id)) {
+      refund.setBankAccountId(bankAccountId);
+      refund.setBankAccountName(name);
+    }
     return transactions.save(t);
   }
 
