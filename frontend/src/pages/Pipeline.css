@@ -1,7 +1,4 @@
 .pipeline-page { min-height:100vh; background:#f5f7fb; color:#172033; font-family:Inter,sans-serif; }
-.pipeline-page header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; background:white; border-bottom:1px solid #e5e7eb; padding:1.25rem max(1rem,calc((100% - 1150px)/2)); }
-.pipeline-page header a { color:#4f46e5; font-weight:600; text-decoration:none; }
-.pipeline-page nav { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
 .pipeline-page main { max-width:1150px; margin:auto; padding:2rem 1rem; }
 .pipeline-page h1 { margin-bottom:.75rem; }
 .pipeline-page h2 { margin-bottom:1rem; font-size:1.2rem; }

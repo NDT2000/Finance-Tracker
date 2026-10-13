@@ -1,5 +1,6 @@
+import AppHeader from '../components/AppHeader';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import './Profile.css';
@@ -66,13 +67,9 @@ export default function Profile() {
 
     return (
         <div className="profile-page">
-            <header className="profile-header">
-                <Link to="/dashboard" className="profile-brand">Finance Tracker</Link>
-                <nav aria-label="Account navigation">
-                    <Link to="/dashboard">Dashboard</Link>
-                    <button type="button" onClick={signOut} disabled={busy}>{loggingOut ? 'Signing out…' : 'Logout'}</button>
-                </nav>
-            </header>
+            <AppHeader>
+                <button type="button" onClick={signOut} disabled={busy}>{loggingOut ? 'Signing out…' : 'Logout'}</button>
+            </AppHeader>
             <main className="profile-content">
                 <div className="profile-heading">
                     <div className="profile-avatar" aria-hidden="true">{initials}</div>
