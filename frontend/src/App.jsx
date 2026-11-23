@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import AppLayout from './components/AppLayout';
@@ -8,6 +9,10 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Imports from './pages/Imports';
 import Planning from './pages/Planning';
+
+// Component gallery for reviewing shared components. import.meta.env.DEV is false in production
+// builds, so Vite drops this import and the gallery never ships.
+const ComponentGallery = import.meta.env.DEV ? lazy(() => import('./pages/dev/ComponentGallery')) : null;
 
 function PrivateRoute({ children }) {
     const { token, loading } = useAuth();
@@ -30,6 +35,10 @@ function App() {
                         <Route path="/imports" element={<Imports />} />
                         <Route path="/profile" element={<Profile />} />
                     </Route>
+
+                    {ComponentGallery && <Route path="/dev/components" element={
+                        <Suspense fallback={<p>Loading gallery…</p>}><ComponentGallery /></Suspense>
+                    } />}
 
                     {redirects.map(([from, to]) => <Route key={from} path={from} element={<Navigate to={to} replace />} />)}
                     {/* Unknown addresses go home; PrivateRoute sends signed-out visitors to sign in */}

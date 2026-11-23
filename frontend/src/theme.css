@@ -61,6 +61,8 @@
     /* Semantic pairs: foreground + background */
     --color-success-fg: var(--emerald-700);  --color-success-bg: var(--emerald-100);
     --color-danger-fg: #DC2626;              --color-danger-bg: #FEE2E2;
+    --color-danger-strong: #B91C1C;   /* text on --color-danger-bg: #DC2626 there is only 3.95:1 */
+    --color-danger-on-dark: #FCA5A5;  /* negative figures on navy */
     --color-warning-fg: #92400E;             --color-warning-bg: #FEF3C7;
     --color-info-fg: var(--blue-700);        --color-info-bg: #DBEAFE;
     --color-ai-fg: #6D28D9;                  --color-ai-bg: #EDE9FE;
