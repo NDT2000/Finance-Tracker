@@ -1,6 +1,6 @@
-.profile-page { min-height: 100vh; background: var(--color-bg); color: var(--color-text); font-family: var(--font); }
+.profile-page { color: var(--color-text); font-family: var(--font-sans); }
 .profile-page button { cursor: pointer; font: inherit; border-radius: var(--radius-control); padding: .65rem 1rem; border: 1px solid var(--color-control-border); background: var(--color-card); color: var(--color-text); }
-.profile-content { max-width: 1040px; margin: auto; padding: 2.5rem 1.25rem; }
+.profile-content { max-width: 1040px; margin: auto; padding: var(--space-8); }
 .profile-heading { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; }
 .profile-avatar { display: grid; place-items: center; flex-shrink: 0; width: 64px; height: 64px; border-radius: 20px; background: var(--color-tint); color: var(--color-primary-button); font-weight: 700; font-size: 1.3rem; }
 .profile-eyebrow { letter-spacing: .1em; font-size: .7rem; font-weight: 700; color: var(--color-primary-button); margin-bottom: .35rem; }
@@ -20,7 +20,7 @@
 .profile-page button:disabled, .profile-card input:disabled { opacity: .65; cursor: not-allowed; }
 .profile-page .profile-error { color: var(--color-expense); font-size: .85rem; line-height: 1.5; }
 .profile-page .profile-success { color: var(--color-income-text); font-size: .85rem; line-height: 1.5; }
-@media (max-width: 700px) { .profile-grid { grid-template-columns: 1fr; } .profile-content { padding-top: 1.75rem; } .profile-card { padding: 1.25rem; } }
+@media (max-width: 700px) { .profile-grid { grid-template-columns: 1fr; } .profile-content { padding: var(--space-6) var(--space-4); } .profile-card { padding: 1.25rem; } }
 
 .profile-layout { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 1.5rem; align-items: start; }
 .profile-menu { display: flex; flex-direction: column; gap: .5rem; }

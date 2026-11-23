@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authClient } from '../api/axios';
 import { styles } from './authStyles';
+import { homePath } from '../navigation';
 import { LogoMark } from '../components/Logo';
 
 export default function Register() {
@@ -27,7 +28,7 @@ export default function Register() {
                 email: response.data.email,
                 fullName: response.data.fullName,
             });
-            navigate('/dashboard');
+            navigate(homePath);
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed');
         } finally {

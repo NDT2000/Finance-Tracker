@@ -1,5 +1,5 @@
-.pipeline-page { min-height:100vh; background:var(--color-bg); color:var(--color-text); font-family:var(--font); }
-.pipeline-page main { max-width:1150px; margin:auto; padding:2rem 1rem; }
+.pipeline-page { color:var(--color-text); font-family:var(--font-sans); }
+.pipeline-page main { max-width:1150px; margin:auto; padding:var(--space-8); }
 .pipeline-page h1 { margin-bottom:.75rem; }
 .pipeline-page h2 { margin-bottom:1rem; font-size:1.2rem; }
 .pipeline-page p { line-height:1.6; margin:.75rem 0; }
@@ -30,6 +30,6 @@
 .pipeline-stat .stat-warning { color:var(--color-warning-fg); }
 .pipeline-charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:1rem; }
 .pipeline-charts .pipeline-card { min-width:0; }
-@media(max-width:600px) { .pipeline-card { padding:1rem; } .pipeline-form label { width:100%; } .pipeline-form input { width:100%; } }
+@media(max-width:600px) { .pipeline-page main { padding:var(--space-6) var(--space-4); } .pipeline-card { padding:1rem; } .pipeline-form label { width:100%; } .pipeline-form input { width:100%; } }
 
 .pipeline-export-field { display:flex; flex-direction:column; gap:.5rem; max-width:100%; min-width:0; }
