@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import './Profile.css';
 import BankAccounts from './BankAccounts';
+import Logo from '../components/Logo';
 
 export default function Profile() {
     const { user, changePassword, logout } = useAuth();
@@ -67,7 +68,7 @@ export default function Profile() {
     return (
         <div className="profile-page">
             <header className="profile-header">
-                <Link to="/dashboard" className="profile-brand">Finance Tracker</Link>
+                <Link to="/dashboard" className="profile-brand"><Logo variant="dark" size={34} /></Link>
                 <nav aria-label="Account navigation">
                     <Link to="/dashboard">Dashboard</Link>
                     <button type="button" onClick={signOut} disabled={busy}>{loggingOut ? 'Signing out…' : 'Logout'}</button>

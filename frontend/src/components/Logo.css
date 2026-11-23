@@ -1,0 +1,6 @@
+.logo { display: inline-flex; align-items: center; gap: 10px; line-height: 1; }
+.logo-word { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; }
+.logo-light .logo-finance { color: var(--navy-900); }
+.logo-light .logo-tracker { color: var(--emerald-600); }
+.logo-dark .logo-finance { color: var(--white); }
+.logo-dark .logo-tracker { color: var(--emerald-400); }
