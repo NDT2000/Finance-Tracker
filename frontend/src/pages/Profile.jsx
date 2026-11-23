@@ -1,10 +1,10 @@
-import AppHeader from '../components/AppHeader';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import './Profile.css';
 import BankAccounts from './BankAccounts';
+import AppHeader from '../components/AppHeader';
 
 export default function Profile() {
     const { user, changePassword, logout } = useAuth();

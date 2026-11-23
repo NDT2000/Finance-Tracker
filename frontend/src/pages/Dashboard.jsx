@@ -1,16 +1,17 @@
-import AppHeader from '../components/AppHeader';
 import { useEffect, useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import './Pipeline.css';
 import TransactionExport from './TransactionExport';
+import AppHeader from '../components/AppHeader';
+import { chartColors } from '../chartColors';
 
 const today = () => new Date().toISOString().slice(0, 10);
 const currentMonth = () => today().slice(0, 7);
 export default function Dashboard() {
-    const { user, logout, token } = useAuth(); const navigate = useNavigate();
+    const { token } = useAuth();
     const [month, setMonth] = useState(currentMonth()); const [currency, setCurrency] = useState('USD');
     const [accounts, setAccounts] = useState([]); const [assigning, setAssigning] = useState(null); const [assignmentBank, setAssignmentBank] = useState('');
     const [currencies, setCurrencies] = useState([{ code: 'USD', digits: 2 }]);
@@ -80,19 +81,16 @@ export default function Dashboard() {
     const dailyData = (summary?.byDay || []).map(d => ({ date: d.date, amount: Number(d.amount) }));
     const pieData = summary ? [{ name: 'Income', value: Number(summary.income) }, { name: 'Net expenses', value: Number(summary.netExpenses) }].filter(d => d.value > 0) : [];
     const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 10);
-    return <div className="pipeline-page"><AppHeader>
-        <span>Hi, {user?.fullName}</span>
-        <button onClick={async () => { try { await logout(); navigate('/login'); } catch { setError('Logout failed. Please try again.'); } }}>Logout</button>
-    </AppHeader><main><h1>Your finances</h1>
+    return <div className="pipeline-page"><AppHeader /><main><h1>Your finances</h1>
         <div className="pipeline-controls"><label>Month<input type="month" value={month} onChange={e => { if (e.target.value) setMonth(e.target.value); }}/></label>
             <label>Currency<select value={currency} onChange={e => setCurrency(e.target.value)}>{currencies.map(c => <option key={c.code}>{c.code}</option>)}</select></label>
             <button onClick={load}>Refresh dashboard</button></div>
         {error && <p role="alert" className="pipeline-error">{error}</p>}
         {loading && <p role="status">Loading your dashboard…</p>}
         {summary && <>
-            <div className="pipeline-stats">{[['Total Income', summary.income], ['Total Expenses (net of refunds)', summary.netExpenses], ['Net Savings', summary.netSavings], ['Refunds', summary.refunds]].map(([label, value]) =>
-                <div key={label} className="pipeline-stat"><span>{label}</span><strong>{money(value)}</strong></div>)}
-                {forecasts.map(f => <div className="pipeline-stat" key={f.category}><span>{f.category} Forecast</span><strong style={{ fontSize: '1.1rem' }}>{!f.data ? 'Forecast unavailable' : f.data.status === 'ON_TRACK' ? '✓ On track' : `⚠ Over by ${money(f.data.overspend_amount)}`}</strong></div>)}
+            <div className="pipeline-stats">{[['Total Income', summary.income, 'stat-positive'], ['Total Expenses (net of refunds)', summary.netExpenses, ''], ['Net Savings', summary.netSavings, Number(summary.netSavings) < 0 ? 'stat-negative' : 'stat-positive'], ['Refunds', summary.refunds, '']].map(([label, value, tone]) =>
+                <div key={label} className="pipeline-stat"><span>{label}</span><strong className={tone}>{money(value)}</strong></div>)}
+                {forecasts.map(f => <div className="pipeline-stat" key={f.category}><span>{f.category} Forecast</span><strong className={f.data?.status === 'ON_TRACK' ? 'stat-positive' : f.data ? 'stat-warning' : ''} style={{ fontSize: '1.1rem' }}>{!f.data ? 'Forecast unavailable' : f.data.status === 'ON_TRACK' ? '✓ On track' : `⚠ Over by ${money(f.data.overspend_amount)}`}</strong></div>)}
             </div>
             <p className="pipeline-help">{summary.transactionCount} canonical entries · Ledger queried {new Date(summary.asOf).toLocaleString()} · Latest applied import: {summary.imports.latest_import_at ? new Date(summary.imports.latest_import_at).toLocaleString() : 'none'}.
                 {` ${summary.imports.pending_jobs} imports pending, ${summary.imports.review_jobs} awaiting review, ${summary.imports.failed_jobs} failed.`} Pending/review rows are not included. Net savings is not a bank-account balance. Currencies are never combined.</p>
@@ -121,10 +119,10 @@ export default function Dashboard() {
             </select></label><button type="submit" disabled={busy}>Save bank assignment</button><button type="button" disabled={busy} onClick={() => setAssigning(null)}>Cancel assignment</button>
         </form><p className="pipeline-help">Amounts and source history do not change. Any linked refunds follow this account.</p></section>}
         <div className="pipeline-charts">
-            <section className="pipeline-card"><h2>Spending by Category</h2><ResponsiveContainer width="100%" height={250}><BarChart data={categoryData}><XAxis dataKey="category"/><YAxis/><Tooltip formatter={money}/><Bar dataKey="spent" name="Net spending" fill="#6366f1"/></BarChart></ResponsiveContainer></section>
-            <section className="pipeline-card"><h2>Spending vs Budget</h2><ResponsiveContainer width="100%" height={250}><BarChart data={budgetData}><XAxis dataKey="category"/><YAxis/><Tooltip formatter={money}/><Legend/><Bar dataKey="spent" fill="#ef4444"/><Bar dataKey="budget" fill="#6366f1"/></BarChart></ResponsiveContainer></section>
-            <section className="pipeline-card"><h2>Daily Spending Trend</h2><ResponsiveContainer width="100%" height={250}><LineChart data={dailyData}><XAxis dataKey="date"/><YAxis/><Tooltip formatter={money}/><Line dataKey="amount" name="Net spending" stroke="#6366f1"/></LineChart></ResponsiveContainer></section>
-            <section className="pipeline-card"><h2>Income vs Expense</h2><ResponsiveContainer width="100%" height={250}><PieChart><Pie data={pieData} dataKey="value" nameKey="name" outerRadius={85} label>{pieData.map((p, i) => <Cell key={p.name} fill={i ? '#ef4444' : '#22c55e'}/>)}</Pie><Tooltip formatter={money}/><Legend/></PieChart></ResponsiveContainer></section>
+            <section className="pipeline-card"><h2>Spending by Category</h2><ResponsiveContainer width="100%" height={250}><BarChart data={categoryData}><XAxis dataKey="category"/><YAxis/><Tooltip formatter={money}/><Bar dataKey="spent" name="Net spending" fill={chartColors.royalBlue} radius={[4, 4, 0, 0]}/></BarChart></ResponsiveContainer></section>
+            <section className="pipeline-card"><h2>Spending vs Budget</h2><ResponsiveContainer width="100%" height={250}><BarChart data={budgetData}><XAxis dataKey="category"/><YAxis/><Tooltip formatter={money}/><Legend/><Bar dataKey="spent" fill={chartColors.royalBlue} radius={[4, 4, 0, 0]}/><Bar dataKey="budget" fill={chartColors.slate} radius={[4, 4, 0, 0]}/></BarChart></ResponsiveContainer></section>
+            <section className="pipeline-card"><h2>Daily Spending Trend</h2><ResponsiveContainer width="100%" height={250}><LineChart data={dailyData}><XAxis dataKey="date"/><YAxis/><Tooltip formatter={money}/><Line dataKey="amount" name="Net spending" stroke={chartColors.royalBlue} strokeWidth={2}/></LineChart></ResponsiveContainer></section>
+            <section className="pipeline-card"><h2>Income vs Expense</h2><ResponsiveContainer width="100%" height={250}><PieChart><Pie data={pieData} dataKey="value" nameKey="name" outerRadius={85} label>{pieData.map(p => <Cell key={p.name} fill={p.name === 'Income' ? chartColors.emerald : chartColors.royalBlue}/>)}</Pie><Tooltip formatter={money}/><Legend/></PieChart></ResponsiveContainer></section>
         </div>
         <section className="pipeline-card"><h2>Recent Transactions</h2>{!recent.length ? <p>No transactions for this month and currency.</p> : <div className="pipeline-table"><table><thead><tr><th>ID / source</th><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Bank account</th><th>Amount</th><th>Action</th></tr></thead><tbody>
             {recent.map(t => <tr key={t.id}><td>#{t.id}<small>{t.origin}</small>{t.importBatchId && <Link to="/imports">Import history</Link>}</td><td>{t.date}</td><td>{t.description}</td><td>{t.category}</td><td>{t.type}</td><td>{t.bankAccountName || 'Unassigned'}{t.bankAccountName && !t.bankAccountId && <small>Account deleted</small>}{t.type !== 'REFUND' && <button disabled={busy} onClick={() => { setAssigning(t); setAssignmentBank(t.bankAccountId ? String(t.bankAccountId) : ''); }}>Assign account #{t.id}</button>}</td><td>{money(t.amount)}</td><td><button disabled={busy} onClick={() => exclude(t.id)}>Exclude from totals</button></td></tr>)}

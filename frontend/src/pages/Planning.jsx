@@ -1,8 +1,9 @@
-import AppHeader from '../components/AppHeader';
 import { useEffect, useRef, useState } from 'react';
 import api from '../api/axios';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ReferenceLine, ResponsiveContainer } from 'recharts';
 import './Pipeline.css';
+import AppHeader from '../components/AppHeader';
+import { chartColors } from '../chartColors';
 import './Planning.css';
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
@@ -126,7 +127,7 @@ export default function Planning() {
                 </form>
                     {!!events.length && <div className="pipeline-table"><table><thead><tr><th>Event</th><th>Type</th><th>Amount</th><th>Schedule</th><th>Actions</th></tr></thead><tbody>{events.map(e => <tr key={e.id}><td>{e.name}</td><td>{kinds[e.kind]}</td><td>{money(e.amount)}</td><td>{offsetMonth(plan.startMonth, e.firstMonth - 1)}{e.recurrence === 'MONTHLY' && ` → ${offsetMonth(plan.startMonth, e.lastMonth - 1)}`}</td><td><button disabled={busy} onClick={() => { setEvent({ ...e }); setEditingEvent(e.id); }}>Edit {e.name}</button><button disabled={busy} onClick={() => setConfirm({ kind: 'event', id: e.id, name: e.name })}>Delete {e.name}</button></td></tr>)}</tbody></table></div>}
                 </section>
-                <section className="pipeline-card"><h2>Projected cash and investments</h2><ResponsiveContainer width="100%" height={300}><LineChart data={plot}><XAxis dataKey="month"/><YAxis/><Tooltip formatter={money}/><Legend/><ReferenceLine y={Number(plan.cashReserve)} stroke="#d97706"/><Line dataKey="cash" name="Cash" stroke="#4f46e5"/><Line dataKey="investments" name="Investments" stroke="#059669"/></LineChart></ResponsiveContainer></section>
+                <section className="pipeline-card"><h2>Projected cash and investments</h2><ResponsiveContainer width="100%" height={300}><LineChart data={plot}><XAxis dataKey="month"/><YAxis/><Tooltip formatter={money}/><Legend/><ReferenceLine y={Number(plan.cashReserve)} stroke={chartColors.amber} strokeDasharray="4 4"/><Line dataKey="cash" name="Cash" stroke={chartColors.royalBlue} strokeWidth={2}/><Line dataKey="investments" name="Investments" stroke={chartColors.emerald} strokeWidth={2}/></LineChart></ResponsiveContainer></section>
                 <section className="pipeline-card"><h2>Compare with recorded finances</h2><label htmlFor="baseline-month">Actual comparison month<input id="baseline-month" type="month" value={baseline} disabled={busy} onChange={e => { if (e.target.value) setBaseline(e.target.value); }}/></label>
                     <p>{projection.actualBaseline.month !== baseline ? 'Refreshing recorded comparison…' : <>{projection.actualBaseline.transactionCount} recorded entries in {projection.actualBaseline.month}, {plan.currency}: income {money(projection.actualBaseline.income)}, net spending {money(projection.actualBaseline.netExpenses)}, net cash flow {money(projection.actualBaseline.netSavings)}.</>}</p>
                     <p className="pipeline-help">These recorded values are a reference only. They are not repeated or added to your scenario automatically. Investment contributions reduce modeled cash but increase modeled investments; do not count them again as spending.</p>
