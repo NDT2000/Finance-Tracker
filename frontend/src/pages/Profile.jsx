@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import './Profile.css';
 import BankAccounts from './BankAccounts';
-import AppHeader from '../components/AppHeader';
 
 export default function Profile() {
-    const { user, changePassword, logout } = useAuth();
+    const { user, changePassword } = useAuth();
+    const { setLogoutBlocked } = useOutletContext();
     const navigate = useNavigate();
     const [fullName, setFullName] = useState(user?.fullName || '');
     const [email, setEmail] = useState(user?.email || '');
@@ -19,8 +19,6 @@ export default function Profile() {
     const [confirmation, setConfirmation] = useState('');
     const [changingPassword, setChangingPassword] = useState(false);
     const [passwordError, setPasswordError] = useState('');
-    const [logoutError, setLogoutError] = useState('');
-    const [loggingOut, setLoggingOut] = useState(false);
 
     useEffect(() => {
         let active = true;
@@ -32,7 +30,13 @@ export default function Profile() {
         return () => { active = false; };
     }, []);
 
-    const busy = changingPassword || loggingOut;
+    const busy = changingPassword;
+
+    // Logout (in the account menu) waits until a password change has finished saving
+    useEffect(() => {
+        setLogoutBlocked(changingPassword);
+        return () => setLogoutBlocked(false);
+    }, [changingPassword, setLogoutBlocked]);
     const initials = (user?.fullName || 'User').trim().split(/\s+/)
         .filter(Boolean).map(word => Array.from(word)[0]).slice(0, 2).join('').toUpperCase();
 
@@ -57,26 +61,14 @@ export default function Profile() {
         } finally { setChangingPassword(false); }
     }
 
-    async function signOut() {
-        if (busy) return;
-        setLogoutError(''); setLoggingOut(true);
-        try { await logout(); navigate('/login', { replace: true }); }
-        catch { setLogoutError('Logout failed. Please try again.'); }
-        finally { setLoggingOut(false); }
-    }
-
     return (
         <div className="profile-page">
-            <AppHeader>
-                <button type="button" onClick={signOut} disabled={busy}>{loggingOut ? 'Signing out…' : 'Logout'}</button>
-            </AppHeader>
             <main className="profile-content">
                 <div className="profile-heading">
                     <div className="profile-avatar" aria-hidden="true">{initials}</div>
                     <div><p className="profile-eyebrow">YOUR ACCOUNT</p><h1>My profile</h1>
                         <p>View your personal details, change your password and manage bank accounts.</p></div>
                 </div>
-                {logoutError && <p className="profile-error" role="alert">{logoutError}</p>}
                 {loading ? <p role="status">Loading your profile…</p> : loadError ? (
                     <p className="profile-error" role="alert">{loadError}</p>
                 ) : (
