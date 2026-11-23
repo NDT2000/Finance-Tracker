@@ -36,6 +36,25 @@ Legacy token names at the bottom of the file keep not-yet-rebuilt pages working;
 
 **Page-to-layout communication:** the layout passes `{ setLogoutBlocked }` as outlet context. The profile page uses it (`useOutletContext()`) to keep Logout unavailable while a password change is saving.
 
+## Shared components and formatting
+
+Reusable pieces live in `src/components/ui/`, styled by `ui.css` (tokens only):
+
+| Component | Use it for |
+|---|---|
+| `StatCard` | One summary figure. `tone`: positive, negative (real losses only), warning, neutral. `featured` = the navy card for a page's key figure, e.g. monthly net cash flow. |
+| `ChartCard` | A card around one Recharts chart. Always pass `summary`, a sentence screen readers hear instead of the drawing. |
+| `Badge` | Status labels in the semantic colour pairs (success, danger, warning, info, ai, pending). The text must state the status. |
+| `EmptyState`, `ErrorState`, `LoadingSkeleton` | Nothing to show / failed with optional retry / loading placeholders announced once to screen readers. |
+| `ConfirmDialog` | Destructive or important confirmations. Native `<dialog>`: traps focus, Escape cancels, focus starts on Cancel. |
+| `MonthSelector`, `CurrencySelector` | Month (with previous/next) and currency pickers with linked labels. |
+
+Buttons and fields are CSS classes, not components: `btn btn--primary|secondary|ghost|danger|icon`, and `field` around a label + input with optional `field__hint` / `field__error`.
+
+Formatting lives in `src/format.js`: `formatMoney` (exact decimal strings, optional sign), `formatAxisMoney` (short chart-axis labels), `amountStep` (input step for a currency's decimals), `currentMonth`, `formatMonth`, `shiftMonth`. All are unit-tested in `tests/format.test.js`.
+
+**Component gallery:** run the dev server (`npm run dev` in `frontend/`) and open `http://localhost:5173/dev/components` to see every component and state. It exists only in development builds.
+
 ## Checks
 
 From `frontend/`: `npm test` (Node's built-in test runner) and `npm run build`. `npm run lint` currently fails because the project has no `eslint.config.js` for ESLint 9+; that is scheduled for the quality pass (step 1.10).
