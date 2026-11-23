@@ -1,0 +1,31 @@
+name: Feature suggestion
+description: Suggest an improvement or discuss an idea before writing code.
+title: "[Suggestion]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe who needs this and a concrete example.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested behavior
+      description: Describe the result you would like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or tradeoffs
+      description: Optional. Include a simpler approach if one exists.
+  - type: dropdown
+    id: involvement
+    attributes:
+      label: Would you like to contribute?
+      options:
+        - "I am suggesting an idea only"
+        - "I can help test or document it"
+        - "I would like to implement it after discussion"

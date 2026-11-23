@@ -1,17 +1,4 @@
 .pipeline-page { min-height:100vh; background:var(--color-bg); color:var(--color-text); font-family:var(--font); }
-.pipeline-page header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; background:var(--color-primary); padding:1.1rem max(1rem,calc((100% - 1150px)/2)); }
-.pipeline-page header a { color:var(--color-header-link); font-weight:500; text-decoration:none; }
-.pipeline-page header a:hover { color:white; }
-.pipeline-page header .app-brand { display:inline-flex; }
-.pipeline-page nav { display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; }
-.user-menu { position:relative; }
-.pipeline-page .user-menu-button { display:flex; align-items:center; justify-content:center; width:44px; height:44px; padding:0; background:transparent; color:white; border-color:rgba(255,255,255,.25); }
-.pipeline-page .user-menu-button:hover,.pipeline-page .user-menu-button[aria-expanded="true"] { background:rgba(255,255,255,.1); }
-.user-menu-list { position:absolute; right:0; top:calc(100% + .5rem); z-index:20; min-width:190px; display:flex; flex-direction:column; padding:.4rem; background:var(--color-card); border:1px solid var(--color-border); border-radius:10px; box-shadow:0 8px 24px rgba(15,23,42,.08); }
-.pipeline-page .user-menu-list a,.pipeline-page .user-menu-list button { display:block; width:100%; text-align:left; padding:.6rem .75rem; border:0; border-radius:6px; background:none; color:var(--color-text); font-weight:500; }
-.pipeline-page .user-menu-list button { border-top:1px solid var(--color-border); border-radius:0 0 6px 6px; }
-.pipeline-page .user-menu-list a:hover,.pipeline-page .user-menu-list button:hover:not(:disabled) { background:var(--color-hover); color:var(--color-text); }
-.pipeline-page .user-menu-list p { margin:.4rem .75rem; font-size:.8rem; color:var(--color-expense); }
 .pipeline-page main { max-width:1150px; margin:auto; padding:2rem 1rem; }
 .pipeline-page h1 { margin-bottom:.75rem; }
 .pipeline-page h2 { margin-bottom:1rem; font-size:1.2rem; }
@@ -27,7 +14,6 @@
 .pipeline-page form button[type="submit"]:hover:not(:disabled) { background:var(--color-primary-button-hover); }
 .pipeline-page button:disabled { opacity:.5; cursor:not-allowed; }
 .pipeline-page :focus-visible { outline:3px solid var(--color-focus); outline-offset:2px; }
-.pipeline-page header :focus-visible { outline-color:var(--color-focus-on-dark); }
 .pipeline-help,.pipeline-page small { display:block; font-size:.8rem; color:var(--color-text-secondary); overflow-wrap:anywhere; }
 .pipeline-error { color:var(--color-expense); }
 .pipeline-table { width:100%; overflow-x:auto; margin:1rem 0; }

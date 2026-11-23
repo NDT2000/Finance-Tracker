@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contribution instructions
+    url: https://github.com/NDT2000/Finance-Tracker/blob/main/CONTRIBUTING.md
+    about: Learn how to fork the repository, suggest improvements and submit a pull request.
+  - name: Report a security vulnerability privately
+    url: https://github.com/NDT2000/Finance-Tracker/security/advisories/new
+    about: Use private vulnerability reporting if enabled; never report credentials or vulnerabilities in a public issue.

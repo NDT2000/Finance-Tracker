@@ -1,12 +1,5 @@
 .profile-page { min-height: 100vh; background: var(--color-bg); color: var(--color-text); font-family: var(--font); }
-.profile-header { background: var(--color-primary); padding: 1.1rem max(1.25rem, calc((100% - 1040px) / 2)); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.profile-brand { display: inline-flex; text-decoration: none; }
-.profile-header nav { display: flex; align-items: center; gap: 1.25rem; }
-.profile-header nav a { color: var(--color-header-link); font-weight: 500; text-decoration: none; }
-.profile-header nav a:hover { color: white; }
 .profile-page button { cursor: pointer; font: inherit; border-radius: var(--radius-control); padding: .65rem 1rem; border: 1px solid var(--color-control-border); background: var(--color-card); color: var(--color-text); }
-.profile-page .profile-header nav button { background: transparent; color: white; border-color: rgba(255, 255, 255, .25); }
-.profile-page .profile-header nav button:hover:not(:disabled) { background: rgba(255, 255, 255, .1); }
 .profile-content { max-width: 1040px; margin: auto; padding: 2.5rem 1.25rem; }
 .profile-heading { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 2rem; }
 .profile-avatar { display: grid; place-items: center; flex-shrink: 0; width: 64px; height: 64px; border-radius: 20px; background: var(--color-tint); color: var(--color-primary-button); font-weight: 700; font-size: 1.3rem; }
@@ -21,14 +14,13 @@
 .profile-card input, .profile-card select { font: inherit; font-size: .95rem; border: 1px solid var(--color-control-border); border-radius: var(--radius-control); padding: .75rem; width: 100%; min-width: 0; color: var(--color-text); background: var(--color-card); }
 .profile-card input[readonly] { background: var(--color-bg); color: var(--color-text-secondary); }
 .profile-page :focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
-.profile-header :focus-visible { outline-color: var(--color-focus-on-dark); }
 .profile-help { font-size: .8rem; line-height: 1.5; color: var(--color-text-secondary); }
 .profile-page .profile-primary { background: var(--color-primary-button); color: white; border-color: var(--color-primary-button); font-weight: 600; margin-top: .75rem; }
 .profile-page .profile-primary:hover:not(:disabled) { background: var(--color-primary-button-hover); }
 .profile-page button:disabled, .profile-card input:disabled { opacity: .65; cursor: not-allowed; }
 .profile-page .profile-error { color: var(--color-expense); font-size: .85rem; line-height: 1.5; }
 .profile-page .profile-success { color: var(--color-income-text); font-size: .85rem; line-height: 1.5; }
-@media (max-width: 700px) { .profile-grid { grid-template-columns: 1fr; } .profile-header { flex-wrap: wrap; } .profile-content { padding-top: 1.75rem; } .profile-card { padding: 1.25rem; } }
+@media (max-width: 700px) { .profile-grid { grid-template-columns: 1fr; } .profile-content { padding-top: 1.75rem; } .profile-card { padding: 1.25rem; } }
 
 .profile-layout { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 1.5rem; align-items: start; }
 .profile-menu { display: flex; flex-direction: column; gap: .5rem; }

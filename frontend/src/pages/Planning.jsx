@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ReferenceLine, ResponsiveContainer } from 'recharts';
 import './Pipeline.css';
-import UserMenu from './UserMenu';
-import Logo from '../components/Logo';
+import AppHeader from '../components/AppHeader';
 import { chartColors } from '../chartColors';
 import './Planning.css';
 
@@ -86,7 +84,7 @@ export default function Planning() {
         finally { setBusy(false); }
     }
     const plot = (projection?.months || []).map(row => ({ month: row.month, cash: Number(row.closingCash), investments: Number(row.closingInvestments) }));
-    return <div className="pipeline-page planning-page"><header><Link to="/dashboard" className="app-brand"><Logo variant="dark" size={34} /></Link><nav><Link to="/dashboard">Dashboard</Link><Link to="/imports">Batch imports</Link><UserMenu /></nav></header>
+    return <div className="pipeline-page planning-page"><AppHeader />
         <main><h1>Financial planning</h1><p>Try salary changes, spending, investments, loan payments and withdrawals before changing your real finances.</p>
             <p className="pipeline-help">Plans are saved what-if scenarios. They never create transactions or change your bank accounts, dashboard totals or existing spending forecast.</p>
             {error && <p className="pipeline-error" role="alert">{error}</p>}

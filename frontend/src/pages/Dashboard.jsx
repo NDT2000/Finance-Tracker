@@ -5,8 +5,7 @@ import api from '../api/axios';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import './Pipeline.css';
 import TransactionExport from './TransactionExport';
-import UserMenu from './UserMenu';
-import Logo from '../components/Logo';
+import AppHeader from '../components/AppHeader';
 import { chartColors } from '../chartColors';
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -82,9 +81,7 @@ export default function Dashboard() {
     const dailyData = (summary?.byDay || []).map(d => ({ date: d.date, amount: Number(d.amount) }));
     const pieData = summary ? [{ name: 'Income', value: Number(summary.income) }, { name: 'Net expenses', value: Number(summary.netExpenses) }].filter(d => d.value > 0) : [];
     const recent = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 10);
-    return <div className="pipeline-page"><header><Link to="/dashboard" className="app-brand"><Logo variant="dark" size={34} /></Link><nav>
-        <Link to="/planning">Financial planning</Link><Link to="/imports">Batch imports</Link><UserMenu />
-    </nav></header><main><h1>Your finances</h1>
+    return <div className="pipeline-page"><AppHeader /><main><h1>Your finances</h1>
         <div className="pipeline-controls"><label>Month<input type="month" value={month} onChange={e => { if (e.target.value) setMonth(e.target.value); }}/></label>
             <label>Currency<select value={currency} onChange={e => setCurrency(e.target.value)}>{currencies.map(c => <option key={c.code}>{c.code}</option>)}</select></label>
             <button onClick={load}>Refresh dashboard</button></div>

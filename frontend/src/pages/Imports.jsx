@@ -1,9 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import './Pipeline.css';
-import UserMenu from './UserMenu';
-import Logo from '../components/Logo';
+import AppHeader from '../components/AppHeader';
 
 const active = status => ['QUEUED', 'PROCESSING'].includes(status);
 export default function Imports() {
@@ -78,7 +76,7 @@ export default function Imports() {
         } catch { setError('Download failed. Please try again.'); }
     }
     return <div className="pipeline-page">
-        <header><Link to="/dashboard" className="app-brand"><Logo variant="dark" size={34} /></Link><nav><Link to="/dashboard">Dashboard</Link><UserMenu /></nav></header>
+        <AppHeader />
         <main><h1>Batch imports</h1><p>Upload CSVs, review their results, and keep one trustworthy transaction ledger.</p>
             {error && <p role="alert" className="pipeline-error">{error}</p>}
             {notice && <p role="status">{notice}</p>}
