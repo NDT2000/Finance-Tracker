@@ -69,6 +69,10 @@ The rules live in `transactionRules.js`, unit-tested in `tests/transactionRules.
 - `updatePayload` builds the `PUT` body from the stored entry, because the server replaces every field. Fields the form does not edit (refund link, inherited bank account, account reference, currency) are always sent back unchanged.
 - Editing an entry whose bank account was deleted clears its historical account label, a limitation of `PUT`; the form warns before saving.
 
+**Budgets** (`src/pages/Budgets.jsx`, parts in `src/pages/budgets/`): the month's budgets with actual spending, exact remaining amounts and the ML month-end estimate. Each card draws actual spending as a solid bar, the estimate as a striped, dashed-outline segment and the limit as a marker, with a legend. Colours follow the spec: red only when spending already exceeds the limit, amber at 80% or when projected over. "Spending without a budget" lists categories with spending but no limit. It reuses `useOverviewData` for its data.
+
+`budgetRules.js` (tested in `tests/budgetRules.test.js`) holds the shared calculations (status, tone, totals, bar segments, unbudgeted categories), used by both the Budgets page and the overview's budget card so they never disagree. Editing a limit sends the stored category, month, year and currency back because `PUT /api/budgets/{id}` validates a complete budget.
+
 On screens under 760px the ledger table shows each row as a labelled card (`data-label` + CSS), keeping the table semantics for screen readers.
 
 **Component gallery:** run the dev server (`npm run dev` in `frontend/`) and open `http://localhost:5173/dev/components` to see every component and state. It exists only in development builds.

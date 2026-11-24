@@ -122,14 +122,14 @@ export default function Overview() {
                     </div>
                 )}
 
-                <div className="overview__grid">
+                <div className="overview__grid overview__grid--even">
                     <BudgetsCard budgets={budgets} byCategory={current.byCategory} forecasts={forecasts}
-                        currency={currency} digits={digits} periodLabel={periodLabel}
+                        currency={currency} digits={digits} month={month} periodLabel={periodLabel}
                         showsForecasts={showsForecasts} onAddBudget={openAddBudget} />
                     <RecentTransactions transactions={transactions} currency={currency} month={month} onAddTransaction={addTransaction} />
                 </div>
 
-                <div className="overview__grid">
+                <div className="overview__grid overview__grid--even">
                     <ImportsCard imports={current.imports} />
                     <PlanningCard />
                 </div>
