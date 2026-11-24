@@ -10,6 +10,7 @@ import Transactions from './pages/Transactions';
 import Budgets from './pages/Budgets';
 import Profile from './pages/Profile';
 import Imports from './pages/Imports';
+import BankAccounts from './pages/BankAccounts';
 import Planning from './pages/Planning';
 
 // Component gallery for reviewing shared components. import.meta.env.DEV is false in production
@@ -37,6 +38,7 @@ function App() {
                         <Route path="/budgets" element={<Budgets />} />
                         <Route path="/planning" element={<Planning />} />
                         <Route path="/imports" element={<Imports />} />
+                        <Route path="/accounts" element={<BankAccounts />} />
                         <Route path="/profile" element={<Profile />} />
                     </Route>
 

@@ -18,7 +18,7 @@ Legacy token names at the bottom of the file keep not-yet-rebuilt pages working;
 <AuthProvider>
   /login, /register                      public pages
   <PrivateRoute><AppLayout>              layout route: every signed-in page renders inside it
-     /overview  /planning  /imports  /profile
+     /overview  /transactions  /budgets  /accounts  /planning  /imports  /profile
   /dashboard -> /overview                redirects for old addresses (src/navigation.js)
   anything else -> /overview             PrivateRoute sends signed-out visitors to /login
 ```
@@ -33,6 +33,8 @@ Legacy token names at the bottom of the file keep not-yet-rebuilt pages working;
 | Account menu | `UserMenu.jsx` | Initials button opening My profile and Logout. |
 
 **Adding a page:** add its route inside the layout route in `App.jsx`, and an entry in `src/navigation.js` (the sidebar and header read it). `tests/navigation.test.js` checks the navigation stays consistent. Only pages that exist are listed; unfinished features are never shown as available.
+
+**Sign in and Create account** (`pages/Login.jsx`, `pages/Register.jsx`) share `pages/auth/AuthLayout.jsx` and `Auth.css`, and use the same `field` and `btn` classes as the rest of the app. Every label is tied to its input (`htmlFor`/`id`), inputs carry `autocomplete` values for password managers, and errors are announced (`role="alert"`).
 
 **Page-to-layout communication:** the layout passes `{ setLogoutBlocked }` as outlet context. The profile page uses it (`useOutletContext()`) to keep Logout unavailable while a password change is saving.
 
@@ -91,6 +93,10 @@ Every projected figure (monthly balances, combined value, lowest cash, funding f
 - Stage, attempts, timings, error code, import ID and file hash sit in a collapsed "Processing details" section.
 
 `importRules.js` (tested in `tests/importRules.test.js`) holds the upload checks (mirroring [the CSV contract](pipeline/contract.md)), status and outcome labels, the result summary, error messages, the rejection report and the polling rule.
+
+**Bank Accounts** (`src/pages/BankAccounts.jsx`, parts in `src/pages/accounts/`): named account labels with type and currency, added in a `Modal` and deleted after a `ConfirmDialog`. Deleting keeps the transactions and their history. The page shows no balances and never presents an entry as a live bank connection. `accountRules.js` (tested in `tests/accountRules.test.js`) mirrors the backend `CreateAccountRequest` checks.
+
+**My Profile** (`src/pages/Profile.jsx`): read-only personal details and the password change. A successful change revokes every session, so the page returns to sign-in. The password checks in `src/passwordRules.js` (tested in `tests/passwordRules.test.js`) mirror the backend `PasswordPolicy`: at least 15 characters, counted as characters so an emoji is one, and at most 72 UTF-8 bytes. Create account uses the same rules. The backend also rejects common passwords and has the final say.
 
 **Component gallery:** run the dev server (`npm run dev` in `frontend/`) and open `http://localhost:5173/dev/components` to see every component and state. It exists only in development builds.
 

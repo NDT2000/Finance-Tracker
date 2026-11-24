@@ -2,120 +2,54 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authClient } from '../api/axios';
-import { styles } from './authStyles';
 import { homePath } from '../navigation';
-import { LogoMark } from '../components/Logo';
+import AuthLayout from './auth/AuthLayout';
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [focused, setFocused] = useState('');
     const { login, notice } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    async function submit(event) {
+        event.preventDefault();
         setLoading(true);
         setError('');
         try {
-            const response = await authClient.authenticate('/api/auth/login', {
-                email,
-                password
-            });
-            login(response.data.token, {
-                email: response.data.email,
-                fullName: response.data.fullName,
-            });
+            const { data } = await authClient.authenticate('/api/auth/login', { email, password });
+            login(data.token, { email: data.email, fullName: data.fullName });
             navigate(homePath);
         } catch (err) {
-            setError(err.response?.status === 429 ? 'Too many attempts. Try again in a minute.' : 'Unable to sign in. Check your credentials or try again later.');
+            setError(err.response?.status === 429
+                ? 'Too many attempts. Try again in a minute.'
+                : 'Unable to sign in. Check your email and password, or try again later.');
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     return (
-        <div style={styles.page}>
-            <div style={styles.card}>
-                {/* Logo mark */}
-                <div style={styles.logoWrap}>
-                    <LogoMark size={52} />
+        <AuthLayout title="Welcome back" subtitle="Sign in to Finance Tracker"
+            footer={<>Don&apos;t have an account? <Link to="/register">Create one</Link></>}>
+            {notice && <p className="auth__notice" role="status">{notice}</p>}
+            <form className="auth__form" onSubmit={submit}>
+                <div className="field">
+                    <label htmlFor="login-email">Email</label>
+                    <input id="login-email" type="email" autoComplete="email" placeholder="you@example.com" required
+                        value={email} onChange={e => setEmail(e.target.value)} disabled={loading} />
                 </div>
-
-                <h1 style={styles.title}>Welcome back</h1>
-                <p style={styles.subtitle}>Sign in to your Finance Tracker</p>
-
-                {notice && (
-                    <p role="status" style={styles.notice}>
-                        {notice}
-                    </p>
-                )}
-                {error && (
-                    <div style={styles.errorBox}>
-                        <span>⚠</span> {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} style={styles.form}>
-                    <div style={styles.fieldWrap}>
-                        <label style={styles.label}>Email</label>
-                        <input
-                            style={{
-                                ...styles.input,
-                                ...(focused === 'email' ? styles.inputFocused : {})
-                            }}
-                            type="email"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            onFocus={() => setFocused('email')}
-                            onBlur={() => setFocused('')}
-                            required
-                        />
-                    </div>
-
-                    <div style={styles.fieldWrap}>
-                        <label style={styles.label}>Password</label>
-                        <input
-                            style={{
-                                ...styles.input,
-                                ...(focused === 'password' ? styles.inputFocused : {})
-                            }}
-                            type="password"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            onFocus={() => setFocused('password')}
-                            onBlur={() => setFocused('')}
-                            required
-                        />
-                    </div>
-
-                    <button
-                        className="auth-btn"
-                        style={{
-                            ...styles.button,
-                            ...(loading ? styles.buttonLoading : {})
-                        }}
-                        type="submit"
-                        disabled={loading}>
-                        {loading ? (
-                            <span style={styles.spinner}>⟳ Signing in...</span>
-                        ) : (
-                            'Sign in →'
-                        )}
-                    </button>
-                </form>
-
-                <p style={styles.footer}>
-                    Don't have an account?{' '}
-                    <Link to="/register" style={styles.link}>
-                        Create one
-                    </Link>
-                </p>
-            </div>
-        </div>
+                <div className="field">
+                    <label htmlFor="login-password">Password</label>
+                    <input id="login-password" type="password" autoComplete="current-password" required
+                        value={password} onChange={e => setPassword(e.target.value)} disabled={loading} />
+                </div>
+                {error && <p className="form-error" role="alert">{error}</p>}
+                <button type="submit" className="btn btn--primary auth__submit" disabled={loading}>
+                    {loading ? 'Signing in…' : 'Sign in'}
+                </button>
+            </form>
+        </AuthLayout>
     );
 }
