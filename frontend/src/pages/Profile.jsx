@@ -23,15 +23,16 @@ export default function Profile() {
     const [saveError, setSaveError] = useState('');
 
     async function load() {
-        setLoadError('');
         try {
             const { data } = await api.get('/api/profile');
             setProfile(data);
+            setLoadError('');
         } catch {
             setLoadError('Your profile could not be loaded.');
         }
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads from the API; state is set only after the request resolves
     useEffect(() => { load(); }, []);
 
     // Logout (in the account menu) waits until a password change has finished saving

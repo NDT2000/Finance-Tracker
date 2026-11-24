@@ -22,16 +22,17 @@ export default function BankAccounts() {
     const [notice, setNotice] = useState('');
 
     const load = useCallback(async () => {
-        setLoadError('');
         try {
             const { data } = await api.get('/api/accounts');
             setAccounts(data);
+            setLoadError('');
         } catch {
             setLoadError('Your bank accounts could not be loaded.');
         }
     }, []);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- loads from the API; state is set only after the request resolves
         load();
         api.get('/api/analytics/currencies').then(({ data }) => setCurrencies(data)).catch(() => {});
     }, [load]);

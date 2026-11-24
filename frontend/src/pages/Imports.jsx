@@ -5,7 +5,8 @@ import api from '../api/axios';
 import Badge from '../components/ui/Badge';
 import { EmptyState, ErrorState, LoadingSkeleton } from '../components/ui/States';
 import UploadCard from './imports/UploadCard';
-import ImportHistoryTable, { dateTime } from './imports/ImportHistoryTable';
+import ImportHistoryTable from './imports/ImportHistoryTable';
+import { formatDateTime } from '../format';
 import ImportStatusCard from './imports/ImportStatusCard';
 import ImportRowsTable from './imports/ImportRowsTable';
 import useImports from './imports/useImports';
@@ -200,7 +201,7 @@ function Freshness({ imports }) {
     return (
         <div className="card imports-freshness" aria-label="Import freshness">
             <span className="imports-freshness__latest">
-                {imports.latest_import_at ? <>Latest import applied <strong>{dateTime(imports.latest_import_at)}</strong></> : 'No CSV imports applied yet'}
+                {imports.latest_import_at ? <>Latest import applied <strong>{formatDateTime(imports.latest_import_at)}</strong></> : 'No CSV imports applied yet'}
             </span>
             <span className="imports-freshness__badges">
                 {!pending && !review && !failed && <Badge tone="success">Nothing waiting</Badge>}

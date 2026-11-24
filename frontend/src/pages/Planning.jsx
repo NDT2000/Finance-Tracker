@@ -9,10 +9,10 @@ import { EmptyState, ErrorState, LoadingSkeleton } from '../components/ui/States
 import { currentMonth, formatMoney, shiftMonth } from '../format';
 import { amountForInput } from './transactions/transactionRules';
 import usePlanningData from './planning/usePlanningData';
-import { emptyPlan, EventForm, PlanForm } from './planning/PlanForms';
+import { EventForm, PlanForm } from './planning/PlanForms';
 import { FundingChecks, ProjectionChart, ProjectionTable, ResultsSummary } from './planning/PlanResults';
 import { BaselineCard, EventsCard } from './planning/PlanEvents';
-import { shortMonth } from './planning/planningRules';
+import { emptyPlan, shortMonth } from './planning/planningRules';
 import './planning/Planning.css';
 
 // Saved what-if scenarios (docs/design-system.md section 15, docs/financial-planning.md). The backend's
@@ -184,7 +184,7 @@ export default function Planning() {
             <Modal open={dialog?.kind === 'createPlan' || dialog?.kind === 'editPlan'} busy={busy} onClose={() => setDialog(null)}
                 title={dialog?.kind === 'editPlan' ? 'Edit assumptions' : 'New scenario'}
                 description="Starting amounts and assumptions for this what-if scenario">
-                <PlanForm initial={dialog?.kind === 'editPlan' ? editInitial : emptyPlan()} currencies={currencies}
+                <PlanForm initial={dialog?.kind === 'editPlan' ? editInitial : emptyPlan(currentMonth())} currencies={currencies}
                     currencyLocked={dialog?.kind === 'editPlan' && events.length > 0} busy={busy} error={formError}
                     submitLabel={dialog?.kind === 'editPlan' ? 'Save assumptions' : 'Create scenario'}
                     onSave={dialog?.kind === 'editPlan' ? editPlan : createPlan} onCancel={() => setDialog(null)} />

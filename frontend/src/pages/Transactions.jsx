@@ -27,7 +27,7 @@ export default function Transactions() {
     const [currencies, setCurrencies] = useState([{ code: 'USD', digits: 2 }]);
     const [data, setData] = useState({ transactions: [], accounts: [], loadedFor: null, error: '' });
     const [filters, setFilters] = useState(noFilters);
-    const [visible, setVisible] = useState(PAGE_SIZE);
+    const [paging, setPaging] = useState({ for: null, count: PAGE_SIZE });
     // dialog: { kind: 'add' | 'edit' | 'assign' | 'export', transaction? } or null
     const [dialog, setDialog] = useState(location.state?.openAdd ? { kind: 'add' } : null);
     const [excluding, setExcluding] = useState(null);
@@ -60,9 +60,12 @@ export default function Transactions() {
         }
     }, [month, currency]);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads from the API; state is set only after the request resolves
     useEffect(() => { load(); }, [load]);
-    // A new month or currency starts from the first rows
-    useEffect(() => { setVisible(PAGE_SIZE); }, [month, currency, filters]);
+    // "Show more" applies to the month, currency and filters it was chosen for; changing any of them
+    // starts from the first rows again (derived here rather than reset in an effect)
+    const pagingKey = `${month}|${currency}|${JSON.stringify(filters)}`;
+    const visible = paging.for === pagingKey ? paging.count : PAGE_SIZE;
 
     const digits = currencies.find(c => c.code === currency)?.digits ?? 2;
     const isCurrent = data.loadedFor === `${month}|${currency}`;
@@ -202,7 +205,7 @@ export default function Transactions() {
                         onExclude={t => { setFormError(''); setExcluding(t); }} />
                     {shown.length > visible && (
                         <div className="tx-more">
-                            <button type="button" className="btn btn--secondary" onClick={() => setVisible(v => v + PAGE_SIZE)}>
+                            <button type="button" className="btn btn--secondary" onClick={() => setPaging({ for: pagingKey, count: visible + PAGE_SIZE })}>
                                 Show {Math.min(PAGE_SIZE, shown.length - visible)} more
                             </button>
                             <span className="card__description">Showing {visible} of {shown.length}</span>

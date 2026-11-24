@@ -1,7 +1,6 @@
 import Badge from '../../components/ui/Badge';
+import { formatDateTime } from '../../format';
 import { statusView } from './importRules';
-
-export const dateTime = iso => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
 // One page of past uploads, newest first. Cells carry data-label for the narrow-screen card layout.
 export default function ImportHistoryTable({ imports, selectedId, onSelect }) {
@@ -28,7 +27,7 @@ export default function ImportHistoryTable({ imports, selectedId, onSelect }) {
                                     <span className="ledger__description imports-filename">{item.filename}</span>
                                     <span className="ledger__sub">{item.account_ref}</span>
                                 </td>
-                                <td data-label="Uploaded" className="ledger__date">{dateTime(item.created_at)}</td>
+                                <td data-label="Uploaded" className="ledger__date">{formatDateTime(item.created_at)}</td>
                                 <td data-label="Status"><Badge tone={status.tone}>{status.label}</Badge></td>
                                 <td data-label="Rows" className="ledger__amount num">{item.total_rows ?? '—'}</td>
                                 <td className="ledger__actions">

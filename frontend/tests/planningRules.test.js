@@ -53,3 +53,11 @@ test('funding checks list problems by severity, or one all-clear', () => {
     assert.equal(problems[0].title, 'Cash runs out in Feb 2027');
     assert.equal(problems[1].amount, '50.00');
 });
+
+test('a new scenario starts in the given month with zero amounts', async () => {
+    const { emptyPlan } = await import('../src/pages/planning/planningRules.js');
+    assert.deepEqual(emptyPlan('2026-11'), {
+        name: '', currency: 'USD', startMonth: '2026-11', months: 12,
+        openingCash: '0', openingInvestments: '0', cashReserve: '0', annualReturnPercent: '0',
+    });
+});

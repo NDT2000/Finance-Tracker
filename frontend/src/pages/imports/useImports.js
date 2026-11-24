@@ -45,6 +45,7 @@ export default function useImports({ batchId, historyOffset, rowOffset, rejected
     }, [batchId, historyOffset, rowOffset, rejectedOnly]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- loads from the API; state is set only after the request resolves
         load();
     }, [load]);
 

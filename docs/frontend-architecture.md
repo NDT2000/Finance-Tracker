@@ -8,9 +8,15 @@ All colours, type sizes, spacing, radii and layout sizes are CSS variables in `f
 
 1. **Raw palette** (`--navy-900`, `--emerald-600`, ...): the exact hex values from the spec.
 2. **Semantic tokens** (`--color-action`, `--color-danger-fg`, `--color-text-muted`, ...): named after their job. Components use only these.
-3. **Dark theme**: the same semantic names with dark values, applied by `<html data-theme="dark">` (not switched on yet).
+3. **Dark theme**: the same semantic names with dark values, applied by `<html data-theme="dark">`.
 
-Legacy token names at the bottom of the file keep not-yet-rebuilt pages working; each is removed as its page is rebuilt. Chart colours live in `src/chartColors.js` because Recharts needs real values.
+**Light and dark mode.** `src/theme.js` decides the theme: a saved choice wins, otherwise the system setting. `public/theme-init.js` applies the same choice before the page draws, so it never flashes the wrong colours. It is a file rather than an inline script because the Content-Security-Policy only allows same-origin scripts. `ThemeToggle` in the header switches the theme and remembers the choice in `localStorage`; if storage is blocked, the choice lasts until reload. Components read the theme with `useTheme()` from `src/useTheme.js`.
+
+- Text links and text buttons use `--color-action-text`; primary buttons use `--color-action` with `--color-on-action` text. In dark mode the spec's `#3B82F6` stays the button colour, but as text on Navy Slate it is only 3.98:1, so links use a lighter blue.
+- Form-field edges use `--color-control-border` (Slate Gray), which meets the 3:1 that WCAG 1.4.11 asks for.
+- **Contrast is tested:** `tests/contrast.test.js` reads `theme.css` and checks every foreground/background pair the UI uses, in both themes: 4.5:1 for text, 3:1 for focus rings, field edges and fills. A colour change that breaks contrast fails `npm test`.
+
+Chart colours are hex values in `chartPalette()` in `src/theme.js`, because Recharts needs real values. Charts get them through `useChartColors()`, so they redraw when the theme changes. `tests/theme.test.js` checks that both palettes have the same colours and that series reach 3:1 against the card.
 
 ## Routing and the app shell
 
@@ -29,10 +35,10 @@ Legacy token names at the bottom of the file keep not-yet-rebuilt pages working;
 |---|---|---|
 | Sidebar | `Sidebar.jsx` | Navy, grouped links with Lucide icons, active page marked (also announced via `aria-current`). Desktop can collapse it to icons only; the choice is kept in `localStorage` (ignored if storage is blocked). |
 | Mobile drawer | `AppLayout.jsx` | Under 900px the sidebar is replaced by a drawer opened from the header. It is a modal dialog: focus moves into it, Tab stays inside, Escape or the backdrop closes it and focus returns to the menu button. Choosing a page closes it. |
-| Header | `AppHeader.jsx` | 64px. Shows the current group and page, the account menu, and on phones the drawer button and compact logo. |
+| Header | `AppHeader.jsx` | 64px. Shows the current group and page, the dark-theme toggle, the account menu, and on phones the drawer button and compact logo. |
 | Account menu | `UserMenu.jsx` | Initials button opening My profile and Logout. |
 
-**Adding a page:** add its route inside the layout route in `App.jsx`, and an entry in `src/navigation.js` (the sidebar and header read it). `tests/navigation.test.js` checks the navigation stays consistent. Only pages that exist are listed; unfinished features are never shown as available.
+**Adding a page:** add a `lazy()` import and its route inside the layout route in `App.jsx`. Signed-in pages are code-split, so the landing and sign-in pages never download the charts library, and `AppLayout` shows a placeholder inside the shell while a page loads. Then add an entry in `src/navigation.js` (the sidebar and header read it). `tests/navigation.test.js` checks the navigation stays consistent. Only pages that exist are listed; unfinished features are never shown as available.
 
 **Landing page** (`src/pages/Landing.jsx`, parts in `src/pages/landing/`): the public page at `/`, following design-system §21. All copy is in `landingContent.js`. `tests/landingContent.test.js` checks the spec headline, that only the five available features appear, that every screenshot exists with alt text, and that the copy has no unavailable features (AI chat, assistants) or invented claims (reviews, statistics, certifications, percentages). Signed-in visitors see "Open app" instead of the sign-in buttons. The screenshots in `public/landing/` are real captures of the app at 1440×900 and 2× scale, using sample data (the footer says so). Retake them when those pages change.
 
@@ -104,4 +110,6 @@ Every projected figure (monthly balances, combined value, lowest cash, funding f
 
 ## Checks
 
-From `frontend/`: `npm test` (Node's built-in test runner) and `npm run build`. `npm run lint` currently fails because the project has no `eslint.config.js` for ESLint 9+; that is scheduled for the quality pass (step 1.10).
+From `frontend/`: `npm test` (Node's built-in test runner), `npm run lint` (ESLint flat config in `eslint.config.js`: recommended JavaScript, React hooks and fast-refresh rules) and `npm run build`.
+
+The React hooks rule `set-state-in-effect` stays on. It cannot follow `async` code, so the few effects that only load data from the API carry a one-line exception saying that state is set after the request resolves. State that should reset when something changes is derived instead, for example the Transactions "show more" count and the mobile drawer.

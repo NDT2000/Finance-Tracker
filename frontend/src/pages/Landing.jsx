@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeftRight, ArrowRight, ChartLine, Target, TrendingUp, Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../useTheme';
 import Logo from '../components/Logo';
 import { homePath } from '../navigation';
 import { closing, features, hero } from './landing/landingContent';
@@ -12,6 +13,7 @@ const ICONS = { tracking: ArrowLeftRight, budgets: Target, forecasts: TrendingUp
 // Public landing page at "/". Signed-in visitors get a link into the app instead of sign-in buttons.
 export default function Landing() {
     const { token } = useAuth();
+    const [theme] = useTheme();
     // onDark: the hero uses an outline Sign in button; on the light closing section it is a secondary button
     const actions = onDark => token
         ? <Link to={homePath} className="btn btn--primary landing__cta">Open app <ArrowRight size={16} aria-hidden="true" /></Link>
@@ -84,7 +86,7 @@ export default function Landing() {
             </main>
 
             <footer className="landing__footer">
-                <Logo variant="light" size={24} />
+                <Logo variant={theme === 'dark' ? 'dark' : 'light'} size={24} />
                 <p>Screens show sample data.</p>
             </footer>
         </div>

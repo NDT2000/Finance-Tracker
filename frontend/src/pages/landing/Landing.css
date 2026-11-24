@@ -25,7 +25,7 @@
 .landing__actions { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-8); }
 .landing__cta { min-height: 48px; padding: 0 var(--space-6); }
 .landing__hero .btn--primary { background: var(--blue-500); color: var(--navy-900); }
-.landing__hero .btn--primary:hover { background: #60A5FA; }
+.landing__hero .btn--primary:hover { background: var(--blue-400); }
 .landing__btn-outline { min-height: 48px; padding: 0 var(--space-6); border: 1px solid var(--slate-600); color: var(--color-text-on-dark); background: transparent; }
 .landing__btn-outline:hover { border-color: var(--slate-400); }
 .landing__hero .landing__nav .btn--primary { min-height: 40px; }

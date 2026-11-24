@@ -1,6 +1,6 @@
 import { Download, FileWarning, LoaderCircle, RotateCcw, X } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
-import { dateTime } from './ImportHistoryTable';
+import { formatDateTime } from '../../format';
 import { isActive, outcomeCounts, resultSummary, retryLabel, statusView } from './importRules';
 
 const STAGES = {
@@ -25,7 +25,7 @@ export default function ImportStatusCard({ batch, busy, onClose, onRetry, onDown
             <div className="card__header">
                 <div className="imports-status__heading">
                     <h2 className="card__title imports-filename" id="import-title">{batch.filename}</h2>
-                    <p className="card__description">{batch.account_ref} · Uploaded {dateTime(batch.created_at)}</p>
+                    <p className="card__description">{batch.account_ref} · Uploaded {formatDateTime(batch.created_at)}</p>
                 </div>
                 <button type="button" className="btn btn--ghost btn--icon" onClick={onClose} aria-label="Close import">
                     <X size={18} aria-hidden="true" />
@@ -70,8 +70,8 @@ export default function ImportStatusCard({ batch, busy, onClose, onRetry, onDown
                 <dl className="imports-details__list">
                     <dt>Stage</dt><dd>{STAGES[batch.stage] ?? batch.stage}</dd>
                     <dt>Attempts</dt><dd>{batch.attempts} of 3</dd>
-                    <dt>Started</dt><dd>{dateTime(batch.started_at)}</dd>
-                    <dt>Finished</dt><dd>{dateTime(batch.finished_at)}</dd>
+                    <dt>Started</dt><dd>{formatDateTime(batch.started_at)}</dd>
+                    <dt>Finished</dt><dd>{formatDateTime(batch.finished_at)}</dd>
                     <dt>Duration</dt><dd>{duration(batch.duration_ms)}</dd>
                     {batch.error_code && <><dt>Error code</dt><dd><code>{batch.error_code}</code></dd></>}
                     <dt>Import ID</dt><dd><code>{batch.id}</code></dd>

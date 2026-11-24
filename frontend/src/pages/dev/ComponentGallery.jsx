@@ -10,7 +10,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import MonthSelector from '../../components/ui/MonthSelector';
 import CurrencySelector from '../../components/ui/CurrencySelector';
 import { EmptyState, ErrorState, LoadingSkeleton } from '../../components/ui/States';
-import { chartColors } from '../../chartColors';
+import { useChartColors } from '../../useTheme';
 import { currentMonth, formatAxisMoney, formatMoney, formatMonth } from '../../format';
 import './ComponentGallery.css';
 
@@ -30,6 +30,7 @@ function Section({ title, children }) {
 }
 
 export default function ComponentGallery() {
+    const chartColors = useChartColors();
     const [month, setMonth] = useState(currentMonth());
     const [currency, setCurrency] = useState('USD');
     const [dialogOpen, setDialogOpen] = useState(false);

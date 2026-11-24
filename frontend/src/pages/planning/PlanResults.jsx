@@ -3,7 +3,7 @@ import { CircleCheck, Landmark, OctagonAlert, PiggyBank, TrendingUp, TriangleAle
 import StatCard from '../../components/ui/StatCard';
 import ChartCard from '../../components/ui/ChartCard';
 import Badge from '../../components/ui/Badge';
-import { chartColors } from '../../chartColors';
+import { useChartColors } from '../../useTheme';
 import { formatAxisMoney, formatMoney } from '../../format';
 import { finalCombinedValue, fundingChecks, shortMonth } from './planningRules';
 
@@ -55,6 +55,7 @@ export function FundingChecks({ projection, plan }) {
 // Cash and investments per month. Different colours AND line styles (solid vs dashed, round vs square
 // points) so the two series are distinguishable without colour; the reserve is a labelled dashed line.
 export function ProjectionChart({ projection, plan }) {
+    const chartColors = useChartColors();
     const money = (value) => formatMoney(value, plan.currency);
     const data = projection.months.map(row => ({
         label: shortMonth(row.month), cash: Number(row.closingCash), investments: Number(row.closingInvestments),

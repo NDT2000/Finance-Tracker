@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import Sidebar from './Sidebar';
 import AppHeader from './AppHeader';
+import { LoadingSkeleton } from './ui/States';
 import './AppLayout.css';
 
 const COLLAPSED_KEY = 'finance-tracker.sidebar-collapsed';
@@ -22,9 +23,12 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
 // Shell around every signed-in page: navy sidebar (desktop), drawer (phones), header and the page itself.
 export default function AppLayout() {
     const [collapsed, setCollapsed] = useState(readCollapsed);
-    const [drawerOpen, setDrawerOpen] = useState(false);
+    // The page the drawer was opened on. Navigating anywhere else closes it (link chosen, or browser back/forward).
+    const [drawerPath, setDrawerPath] = useState(null);
     const [logoutBlocked, setLogoutBlocked] = useState(false);
     const { pathname } = useLocation();
+    const drawerOpen = drawerPath === pathname;
+    const setDrawerOpen = open => setDrawerPath(open ? pathname : null);
     const toggleRef = useRef(null);
     const drawerRef = useRef(null);
     const closeRef = useRef(null);
@@ -41,9 +45,6 @@ export default function AppLayout() {
         toggleRef.current?.focus();
     }
 
-    // A new page closes the drawer (link chosen, or browser back/forward)
-    useEffect(() => { setDrawerOpen(false); }, [pathname]);
-
     // While the drawer is open: focus its close button, stop the page behind from scrolling,
     // and close it if the window grows to desktop width.
     useEffect(() => {
@@ -52,7 +53,7 @@ export default function AppLayout() {
         const previousOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
         const desktop = window.matchMedia(DESKTOP_QUERY);
-        const onResize = () => { if (desktop.matches) setDrawerOpen(false); };
+        const onResize = () => { if (desktop.matches) setDrawerPath(null); };
         desktop.addEventListener('change', onResize);
         return () => {
             document.body.style.overflow = previousOverflow;
@@ -103,9 +104,12 @@ export default function AppLayout() {
             <div className="app-shell__main">
                 <AppHeader toggleRef={toggleRef} navigationOpen={drawerOpen}
                     onOpenNavigation={() => setDrawerOpen(true)} logoutDisabled={logoutBlocked} />
-                <div id="main-content" className="app-shell__content" tabIndex={-1}>
-                    <Outlet context={{ setLogoutBlocked }} />
-                </div>
+                <main id="main-content" className="app-shell__content" tabIndex={-1}>
+                    {/* Pages are loaded on demand (App.jsx); the shell stays in place meanwhile */}
+                    <Suspense fallback={<div className="page"><div className="card"><LoadingSkeleton lines={4} label="Loading page…" /></div></div>}>
+                        <Outlet context={{ setLogoutBlocked }} />
+                    </Suspense>
+                </main>
             </div>
         </div>
     );
