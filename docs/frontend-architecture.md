@@ -16,7 +16,7 @@ Legacy token names at the bottom of the file keep not-yet-rebuilt pages working;
 
 ```
 <AuthProvider>
-  /login, /register                      public pages
+  /  /login  /register                   public pages (/ is the landing page)
   <PrivateRoute><AppLayout>              layout route: every signed-in page renders inside it
      /overview  /transactions  /budgets  /accounts  /planning  /imports  /profile
   /dashboard -> /overview                redirects for old addresses (src/navigation.js)
@@ -33,6 +33,8 @@ Legacy token names at the bottom of the file keep not-yet-rebuilt pages working;
 | Account menu | `UserMenu.jsx` | Initials button opening My profile and Logout. |
 
 **Adding a page:** add its route inside the layout route in `App.jsx`, and an entry in `src/navigation.js` (the sidebar and header read it). `tests/navigation.test.js` checks the navigation stays consistent. Only pages that exist are listed; unfinished features are never shown as available.
+
+**Landing page** (`src/pages/Landing.jsx`, parts in `src/pages/landing/`): the public page at `/`, following design-system §21. All copy is in `landingContent.js`. `tests/landingContent.test.js` checks the spec headline, that only the five available features appear, that every screenshot exists with alt text, and that the copy has no unavailable features (AI chat, assistants) or invented claims (reviews, statistics, certifications, percentages). Signed-in visitors see "Open app" instead of the sign-in buttons. The screenshots in `public/landing/` are real captures of the app at 1440×900 and 2× scale, using sample data (the footer says so). Retake them when those pages change.
 
 **Sign in and Create account** (`pages/Login.jsx`, `pages/Register.jsx`) share `pages/auth/AuthLayout.jsx` and `Auth.css`, and use the same `field` and `btn` classes as the rest of the app. Every label is tied to its input (`htmlFor`/`id`), inputs carry `autocomplete` values for password managers, and errors are announced (`role="alert"`).
 
