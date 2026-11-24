@@ -9,7 +9,7 @@ One workflow, [`.github/workflows/ci.yml`](../.github/workflows/ci.yml), checks 
 | ML service (unit tests) | The FastAPI forecast service's tests, with Python 3.11 as in its Dockerfile | `cd ml-service; pip install -r requirements.txt; python -m unittest discover -p "test_*.py"` |
 | Secret scan (Gitleaks) | The whole git history for committed secrets. `.gitleaksignore` lists the two reviewed historical findings by exact fingerprint; anything new fails. | `docker run --rm -v "${PWD}:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.24.2 git /repo --config /repo/.gitleaks.toml --gitleaks-ignore-path /repo/.gitleaksignore --redact` |
 | Dependency vulnerabilities (OSV-Scanner) | The npm lockfile and both Python requirement files against the free OSV database | `docker run --rm -v "${PWD}:/src:ro" ghcr.io/google/osv-scanner:v2.2.4 scan source -L /src/frontend/package-lock.json -L /src/ml-service/requirements.txt -L /src/pipeline/requirements.txt` |
-| Java dependency graph (pushes to `main` only) | Sends the full Maven dependency tree, including transitive libraries, to GitHub so **Dependabot alerts** cover the Java side | Nothing to run; see the repository's Security tab |
+| Java dependency graph (pushes to `main` and manual runs) | Sends the full Maven dependency tree, including transitive libraries, to GitHub so **Dependabot alerts** cover the Java side | Nothing to run; see the repository's Security tab |
 
 ## Why it is set up this way
 
