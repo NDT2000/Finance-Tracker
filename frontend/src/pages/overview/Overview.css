@@ -51,17 +51,18 @@
 
 /* Recent transactions */
 .recent-list { list-style: none; margin: 0; padding: 0; }
-.recent-list li { display: grid; grid-template-columns: 1fr auto minmax(96px, auto); align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-top: 1px solid var(--color-border); }
+.recent-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-top: 1px solid var(--color-border); }
 .recent-list li:first-child { border-top: 0; padding-top: 0; }
 .recent__main { display: flex; flex-direction: column; min-width: 0; }
 .recent__description { color: var(--color-heading); font-weight: 500; font-size: var(--text-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.recent__meta { color: var(--color-text-muted); font-size: var(--text-xs); }
+.recent__meta { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-1) var(--space-2); margin-top: var(--space-1); color: var(--color-text-muted); font-size: var(--text-xs); }
 .recent__amount { text-align: right; font-weight: 600; font-size: var(--text-sm); color: var(--color-heading); }
 .recent__amount--in { color: var(--color-positive); }
 
 /* Imports and planning */
 .overview__side-card .card__title { display: flex; align-items: center; gap: var(--space-2); }
-.overview__side-link { margin-top: var(--space-4); padding-left: 0; }
+.overview__side-footer { margin-top: auto; padding-top: var(--space-4); }
+.overview__side-link { padding-left: 0; }
 
 
 @media (max-width: 1100px) {
@@ -74,3 +75,7 @@
     .overview__filters .field:first-child { min-width: 0; flex: 1 1 100%; }
 }
 .overview__actions { margin-top: var(--space-4); }
+
+/* Rows whose cards should match in height (Budgets + Recent transactions, Imports + Plan ahead) */
+.overview__grid--even { align-items: stretch; }
+.overview__grid--even > .card { display: flex; flex-direction: column; }

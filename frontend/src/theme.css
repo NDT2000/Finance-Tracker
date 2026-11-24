@@ -57,6 +57,7 @@
     --color-positive: var(--emerald-700);    /* positive text */
     --color-positive-on-dark: var(--emerald-400);
     --color-brand-accent: var(--emerald-600);
+    --color-estimate: var(--slate-400);        /* striped fill marking forecasts and other estimates */
 
     /* Semantic pairs: foreground + background */
     --color-success-fg: var(--emerald-700);  --color-success-bg: var(--emerald-100);

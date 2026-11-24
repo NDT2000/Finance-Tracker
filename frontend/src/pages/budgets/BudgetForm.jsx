@@ -3,8 +3,9 @@ import { formatMonth } from '../../format';
 
 // Create a monthly category budget (POST /api/budgets) for the selected month and currency.
 // categories suggests names already used this month; the server rejects a duplicate category.
-export default function BudgetForm({ month, currency, step, categories = [], busy, error, onSave, onCancel }) {
-    const [category, setCategory] = useState('');
+// initialCategory pre-fills the category, e.g. when setting a budget for unbudgeted spending.
+export default function BudgetForm({ month, currency, step, categories = [], initialCategory = '', busy, error, onSave, onCancel }) {
+    const [category, setCategory] = useState(initialCategory);
     const [monthlyLimit, setMonthlyLimit] = useState('');
 
     function submit(event) {

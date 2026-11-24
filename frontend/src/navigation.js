@@ -1,5 +1,5 @@
 // Sidebar navigation, grouped as in docs/design-system.md section 11.
-// Only pages that exist are listed: later rebuild steps add Budgets, Analytics,
+// Only pages that exist are listed: later rebuild steps add Analytics,
 // Spend Forecasts, Import History, Export Reports and Bank Accounts as each page is built.
 export const navigation = [
     {
@@ -7,6 +7,7 @@ export const navigation = [
         items: [
             { to: '/overview', label: 'Overview', icon: 'overview' },
             { to: '/transactions', label: 'Transactions', icon: 'transactions' },
+            { to: '/budgets', label: 'Budgets', icon: 'budgets' },
         ],
     },
     {

@@ -33,9 +33,11 @@ export function ImportsCard({ imports }) {
             {failed > 0 && (
                 <p className="overview__footnote">A failed import added nothing to your totals. Open imports to see what went wrong and retry.</p>
             )}
-            <Link to="/imports" className="btn btn--ghost overview__side-link">
-                Go to imports <ArrowRight size={16} aria-hidden="true" />
-            </Link>
+            <div className="overview__side-footer">
+                <Link to="/imports" className="btn btn--ghost overview__side-link">
+                    Go to imports <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+            </div>
         </section>
     );
 }
@@ -50,9 +52,11 @@ export function PlanningCard() {
             <p className="card__description">
                 Try what-if scenarios for income, spending, investments and loans. Plans never change your actual transactions.
             </p>
-            <Link to="/planning" className="btn btn--ghost overview__side-link">
-                Open financial planning <ArrowRight size={16} aria-hidden="true" />
-            </Link>
+            <div className="overview__side-footer">
+                <Link to="/planning" className="btn btn--ghost overview__side-link">
+                    Open financial planning <ArrowRight size={16} aria-hidden="true" />
+                </Link>
+            </div>
         </section>
     );
 }

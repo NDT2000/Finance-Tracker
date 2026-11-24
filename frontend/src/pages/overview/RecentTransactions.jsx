@@ -38,12 +38,14 @@ export default function RecentTransactions({ transactions, currency, month, onAd
                             <div className="recent__main">
                                 <span className="recent__description">{t.description}</span>
                                 <span className="recent__meta">
-                                    {new Date(`${t.date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                    {' · '}{t.category}
-                                    {t.bankAccountName && <>{' · '}{t.bankAccountName}</>}
+                                    <Badge tone={TYPE_TONES[t.type]}>{TYPE_LABELS[t.type] ?? t.type}</Badge>
+                                    <span>
+                                        {new Date(`${t.date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                        {' · '}{t.category}
+                                        {t.bankAccountName && <>{' · '}{t.bankAccountName}</>}
+                                    </span>
                                 </span>
                             </div>
-                            <Badge tone={TYPE_TONES[t.type]}>{TYPE_LABELS[t.type] ?? t.type}</Badge>
                             <span className={`recent__amount num${t.type === 'EXPENSE' ? '' : ' recent__amount--in'}`}>
                                 {signFor(t.type)}{formatMoney(t.amount, currency)}
                             </span>

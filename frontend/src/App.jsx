@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Overview from './pages/Overview';
 import Transactions from './pages/Transactions';
+import Budgets from './pages/Budgets';
 import Profile from './pages/Profile';
 import Imports from './pages/Imports';
 import Planning from './pages/Planning';
@@ -33,6 +34,7 @@ function App() {
                     <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
                         <Route path="/overview" element={<Overview />} />
                         <Route path="/transactions" element={<Transactions />} />
+                        <Route path="/budgets" element={<Budgets />} />
                         <Route path="/planning" element={<Planning />} />
                         <Route path="/imports" element={<Imports />} />
                         <Route path="/profile" element={<Profile />} />
