@@ -22,7 +22,7 @@
 
 /* ---------- Form fields: <div className="field"><label/><input/><p className="field__hint"/></div> ---------- */
 .field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
-.field > label { font-size: var(--text-sm); font-weight: 600; color: var(--color-heading); }
+.field > label, .field__label { font-size: var(--text-sm); font-weight: 600; color: var(--color-heading); }
 .field input, .field select, .field textarea {
     min-height: 44px; padding: 0 var(--space-3);
     border: 1px solid var(--color-control-border); border-radius: var(--radius-control);
@@ -110,3 +110,22 @@
 
 /* ---------- Chart card ---------- */
 .chart-card__figure { margin: 0; container-type: inline-size; } /* lets charts adapt to their card's width */
+
+/* ---------- Modal (forms in a native <dialog>; shares .dialog styles) ---------- */
+.modal { width: min(94vw, 560px); max-height: 90vh; overflow-y: auto; }
+.modal__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
+.modal__header .dialog__title { margin: 0; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.form-grid .field--wide { grid-column: 1 / -1; }
+.form-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
+.form-error { margin: var(--space-4) 0 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-control); background: var(--color-danger-bg); color: var(--color-danger-strong); font-size: var(--text-sm); }
+.field__static { min-height: 44px; display: flex; align-items: center; font-size: var(--text-sm); color: var(--color-heading); }
+@media (max-width: 520px) { .form-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Page layout shared by rebuilt pages ---------- */
+.page { max-width: 1200px; margin: auto; padding: var(--space-8); display: flex; flex-direction: column; gap: var(--space-6); }
+.page__head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); }
+.page__title { margin: 0; font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.02em; }
+.page__subtitle { margin: var(--space-1) 0 0; color: var(--color-text-muted); font-size: var(--text-sm); }
+.page__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+@media (max-width: 600px) { .page { padding: var(--space-6) var(--space-4); } }

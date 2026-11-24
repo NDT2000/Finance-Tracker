@@ -27,4 +27,3 @@
 .pipeline-stat strong { display:block; font-size:1.6rem; margin-top:.5rem; }
 @media(max-width:600px) { .pipeline-page main { padding:var(--space-6) var(--space-4); } .pipeline-card { padding:1rem; } .pipeline-form label { width:100%; } .pipeline-form input { width:100%; } }
 
-.pipeline-export-field { display:flex; flex-direction:column; gap:.5rem; max-width:100%; min-width:0; }

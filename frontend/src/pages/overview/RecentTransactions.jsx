@@ -1,33 +1,31 @@
-import { Receipt } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Receipt } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/States';
 import { formatMoney } from '../../format';
+import { TYPE_LABELS, TYPE_TONES, signFor, sortNewestFirst } from '../transactions/transactionRules';
 
 const COUNT = 6;
 
-// How each type reads in the list. Refunds are labelled, so they are never mistaken for income.
-const typeLabel = { INCOME: 'Income', EXPENSE: 'Expense', REFUND: 'Refund' };
-const typeTone = { INCOME: 'success', EXPENSE: 'pending', REFUND: 'info' };
-
-// Money in shows a +, money out a −; the type label says which, so colour is never the only cue.
-function signedAmount(t, currency) {
-    const amount = formatMoney(t.amount, currency);
-    return t.type === 'EXPENSE' ? `−${amount}` : `+${amount}`;
-}
-
-// The latest entries of the selected month, read-only. Editing actions are in "Manage entries".
-export default function RecentTransactions({ transactions, currency, onAddTransaction }) {
-    const recent = [...transactions]
-        .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
-        .slice(0, COUNT);
+// The latest entries of the selected month, read-only. Editing happens on the Transactions page.
+// Refunds are labelled, so they are never mistaken for income; the +/− sign never relies on colour alone.
+export default function RecentTransactions({ transactions, currency, month, onAddTransaction }) {
+    const recent = sortNewestFirst(transactions).slice(0, COUNT);
 
     return (
         <section className="card" aria-labelledby="recent-title">
             <div className="card__header">
                 <div>
                     <h2 className="card__title" id="recent-title">Recent transactions</h2>
-                    <p className="card__description">Latest {Math.min(COUNT, transactions.length) || ''} of {transactions.length} this month</p>
+                    <p className="card__description">
+                        {recent.length ? `Latest ${recent.length} of ${transactions.length} this month` : 'This month'}
+                    </p>
                 </div>
+                {recent.length > 0 && (
+                    <Link to="/transactions" state={{ month, currency }} className="btn btn--ghost">
+                        View all <ArrowRight size={16} aria-hidden="true" />
+                    </Link>
+                )}
             </div>
             {!recent.length ? (
                 <EmptyState icon={Receipt} title="No transactions this month"
@@ -45,9 +43,9 @@ export default function RecentTransactions({ transactions, currency, onAddTransa
                                     {t.bankAccountName && <>{' · '}{t.bankAccountName}</>}
                                 </span>
                             </div>
-                            <Badge tone={typeTone[t.type]}>{typeLabel[t.type] ?? t.type}</Badge>
+                            <Badge tone={TYPE_TONES[t.type]}>{TYPE_LABELS[t.type] ?? t.type}</Badge>
                             <span className={`recent__amount num${t.type === 'EXPENSE' ? '' : ' recent__amount--in'}`}>
-                                {signedAmount(t, currency)}
+                                {signFor(t.type)}{formatMoney(t.amount, currency)}
                             </span>
                         </li>
                     ))}

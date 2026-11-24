@@ -9,7 +9,7 @@ const forecastMonth = () => new Date().toISOString().slice(0, 7);
 // Forecasts load separately afterwards, so a slow or unavailable ML service never delays or breaks
 // the rest of the page. Responses for an older month/currency are ignored if the user has moved on.
 export default function useOverviewData(month, currency) {
-    const [state, setState] = useState({ summary: null, transactions: [], budgets: [], accounts: [], loading: true, error: '' });
+    const [state, setState] = useState({ summary: null, transactions: [], budgets: [], loading: true, error: '' });
     const [forecasts, setForecasts] = useState({});
     const latestRequest = useRef(0);
 
@@ -20,18 +20,17 @@ export default function useOverviewData(month, currency) {
         setForecasts({});
         try {
             const period = `month=${encodeURIComponent(month)}&currency=${encodeURIComponent(currency)}`;
-            const [summary, transactions, budgets, accounts] = await Promise.all([
+            const [summary, transactions, budgets] = await Promise.all([
                 api.get(`/api/analytics/monthly?${period}`),
                 api.get(`/api/transactions?${period}`),
                 api.get('/api/budgets'),
-                api.get('/api/accounts'),
             ]);
             if (!isCurrent()) return;
             const [year, monthNumber] = month.split('-').map(Number);
             const monthBudgets = budgets.data.filter(b => b.currency === currency && b.year === year && b.month === monthNumber);
             setState({
                 summary: summary.data, transactions: transactions.data, budgets: monthBudgets,
-                accounts: accounts.data, loading: false, error: '',
+                loading: false, error: '',
             });
 
             if (month !== forecastMonth()) return;

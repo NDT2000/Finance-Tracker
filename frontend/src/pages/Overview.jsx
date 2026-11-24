@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { CalendarX2, RefreshCw, TrendingUp, Wallet } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CalendarX2, Plus, RefreshCw, TrendingUp, Wallet } from 'lucide-react';
 import api from '../api/axios';
 import StatCard from '../components/ui/StatCard';
+import Modal from '../components/ui/Modal';
 import MonthSelector from '../components/ui/MonthSelector';
 import CurrencySelector from '../components/ui/CurrencySelector';
 import { EmptyState, ErrorState, LoadingSkeleton } from '../components/ui/States';
@@ -13,7 +15,7 @@ import BudgetsCard from './overview/BudgetsCard';
 import RecentTransactions from './overview/RecentTransactions';
 import { DailySpendingChart, IncomeExpenseChart } from './overview/TrendCharts';
 import { ImportsCard, PlanningCard } from './overview/SideCards';
-import ManageEntries from './overview/ManageEntries';
+import BudgetForm from './budgets/BudgetForm';
 import './overview/Overview.css';
 
 // The selected month and currency at a glance (docs/design-system.md section 12).
@@ -22,8 +24,29 @@ export default function Overview() {
     const [month, setMonth] = useState(currentMonth());
     const [currency, setCurrency] = useState('USD');
     const [currencies, setCurrencies] = useState([{ code: 'USD', digits: 2 }]);
-    const [panel, setPanel] = useState(null);
-    const { summary, transactions, budgets, accounts, forecasts, loading, error, reload } = useOverviewData(month, currency);
+    const [addingBudget, setAddingBudget] = useState(false);
+    const [budgetBusy, setBudgetBusy] = useState(false);
+    const [budgetError, setBudgetError] = useState('');
+    const navigate = useNavigate();
+    const { summary, transactions, budgets, forecasts, loading, error, reload } = useOverviewData(month, currency);
+
+    // Adding a transaction happens on the Transactions page, opened on the same month and currency
+    const addTransaction = () => navigate('/transactions', { state: { openAdd: true, month, currency } });
+    const openAddBudget = () => { setBudgetError(''); setAddingBudget(true); };
+
+    async function saveBudget(body) {
+        setBudgetBusy(true);
+        setBudgetError('');
+        try {
+            await api.post('/api/budgets', body);
+            setAddingBudget(false);
+            await reload();
+        } catch (err) {
+            setBudgetError(err.response?.data?.message || 'The budget could not be saved. Please try again.');
+        } finally {
+            setBudgetBusy(false);
+        }
+    }
 
     useEffect(() => {
         api.get('/api/analytics/currencies').then(({ data }) => setCurrencies(data)).catch(() => {});
@@ -46,6 +69,14 @@ export default function Overview() {
                 <div>
                     <h1 className="overview__title">Overview</h1>
                     <p className="overview__subtitle">{periodLabel}</p>
+                    <div className="page__actions overview__actions">
+                        <button type="button" className="btn btn--primary" onClick={addTransaction}>
+                            <Plus size={16} aria-hidden="true" /> Add transaction
+                        </button>
+                        <button type="button" className="btn btn--secondary" onClick={openAddBudget}>
+                            <Plus size={16} aria-hidden="true" /> Add budget
+                        </button>
+                    </div>
                 </div>
                 <div className="overview__filters">
                     <MonthSelector value={month} onChange={setMonth} />
@@ -77,7 +108,7 @@ export default function Overview() {
                     <div className="card">
                         <EmptyState icon={CalendarX2} title={`No entries for ${formatMonth(month)} in ${currency}`}
                             message="Add a transaction, import a CSV file, or pick another month or currency."
-                            action={<button type="button" className="btn btn--primary" onClick={() => setPanel('transaction')}>Add a transaction</button>} />
+                            action={<button type="button" className="btn btn--primary" onClick={addTransaction}>Add a transaction</button>} />
                     </div>
                 ) : (
                     <div className="overview__grid">
@@ -94,8 +125,8 @@ export default function Overview() {
                 <div className="overview__grid">
                     <BudgetsCard budgets={budgets} byCategory={current.byCategory} forecasts={forecasts}
                         currency={currency} digits={digits} periodLabel={periodLabel}
-                        showsForecasts={showsForecasts} onAddBudget={() => setPanel('budget')} />
-                    <RecentTransactions transactions={transactions} currency={currency} onAddTransaction={() => setPanel('transaction')} />
+                        showsForecasts={showsForecasts} onAddBudget={openAddBudget} />
+                    <RecentTransactions transactions={transactions} currency={currency} month={month} onAddTransaction={addTransaction} />
                 </div>
 
                 <div className="overview__grid">
@@ -103,9 +134,14 @@ export default function Overview() {
                     <PlanningCard />
                 </div>
 
-                <ManageEntries month={month} currency={currency} step={amountStep(digits)} accounts={accounts}
-                    transactions={transactions} panel={panel} onPanelChange={setPanel} onChanged={reload} />
             </>}
+
+            <Modal open={addingBudget} busy={budgetBusy} onClose={() => setAddingBudget(false)}
+                title="Add budget" description={periodLabel}>
+                <BudgetForm month={month} currency={currency} step={amountStep(digits)}
+                    categories={[...new Set((current?.byCategory ?? []).map(c => c.category))].sort()}
+                    busy={budgetBusy} error={budgetError} onSave={saveBudget} onCancel={() => setAddingBudget(false)} />
+            </Modal>
         </div>
     );
 }

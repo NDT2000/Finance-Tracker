@@ -59,7 +59,17 @@ Exact money arithmetic for small display calculations (such as a budget's remain
 
 **Overview** (`src/pages/Overview.jsx`, sections in `src/pages/overview/`): `useOverviewData` loads the month's summary, transactions, budgets and bank accounts together, then forecasts separately so a slow or failing ML service never blocks the page. It ignores responses for a month or currency the user has already left, and the page only shows figures whose month and currency match the selection. Forecasts are requested for the current month **in UTC**, because that is the month the backend forecasts.
 
-`ManageEntries` holds the add-transaction, add-budget, bank-assignment, exclusion and export workflows until they move to the Transactions and Budgets pages (steps 1.4 and 1.5).
+Adding a budget opens `pages/budgets/BudgetForm.jsx` in a `Modal`; "Add a transaction" and "View all" open the Transactions page on the same month and currency (passed as router state).
+
+**Transactions** (`src/pages/Transactions.jsx`, parts in `src/pages/transactions/`): the ledger for one month and currency, with search and filters applied in the browser to that month (the API filters only by month and currency). Add, edit, bank assignment and CSV export happen in `Modal` dialogs; exclusion asks first and offers Undo through `POST /api/transactions/{id}/restore`.
+
+The rules live in `transactionRules.js`, unit-tested in `tests/transactionRules.test.js`:
+
+- `allowedActions` mirrors the backend: only manual entries can be edited (imported ones are corrected by importing a higher source revision), and refunds never change bank account on their own.
+- `updatePayload` builds the `PUT` body from the stored entry, because the server replaces every field. Fields the form does not edit (refund link, inherited bank account, account reference, currency) are always sent back unchanged.
+- Editing an entry whose bank account was deleted clears its historical account label, a limitation of `PUT`; the form warns before saving.
+
+On screens under 760px the ledger table shows each row as a labelled card (`data-label` + CSS), keeping the table semantics for screen readers.
 
 **Component gallery:** run the dev server (`npm run dev` in `frontend/`) and open `http://localhost:5173/dev/components` to see every component and state. It exists only in development builds.
 
