@@ -26,11 +26,12 @@ export function ErrorState({ title = 'Something went wrong', message, onRetry })
 }
 
 // Grey placeholder shapes while content loads. variant: "text" (lines), "stat" (a figure) or "chart".
-// Screen readers hear the label once instead of the shapes.
+// Screen readers hear the label instead of the shapes. When several skeletons load together, give one
+// the label and the others label="" so the announcement is made only once.
 export function LoadingSkeleton({ variant = 'text', lines = 3, label = 'Loading…' }) {
     return (
-        <div className="skeleton" role="status">
-            <span className="sr-only">{label}</span>
+        <div className="skeleton" role={label ? 'status' : undefined}>
+            {label && <span className="sr-only">{label}</span>}
             {variant === 'stat' && <>
                 <div className="skeleton__block skeleton__line" style={{ width: '40%' }} aria-hidden="true" />
                 <div className="skeleton__block skeleton__value" aria-hidden="true" />

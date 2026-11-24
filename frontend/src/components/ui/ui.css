@@ -109,4 +109,4 @@
 .dialog__actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
 
 /* ---------- Chart card ---------- */
-.chart-card__figure { margin: 0; }
+.chart-card__figure { margin: 0; container-type: inline-size; } /* lets charts adapt to their card's width */
