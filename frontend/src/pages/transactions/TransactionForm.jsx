@@ -100,7 +100,6 @@ export default function TransactionForm({ editing, currency, digits, step, accou
                             <input aria-label="Original expense ID" type="number" min="1" placeholder="Ledger ID, e.g. 42"
                                 value={form.refundOf} onChange={update('refundOf')} required disabled={busy} />
                         )}
-                        <p className="field__hint">A refund reduces that expense&apos;s spending and uses its bank account.</p>
                     </div>
                 )}
 
@@ -111,7 +110,7 @@ export default function TransactionForm({ editing, currency, digits, step, accou
                             <option value="">Unassigned</option>
                             {currencyAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                         </select>
-                        <p className="field__hint">Only {editing?.currency ?? currency} accounts are listed. Manage accounts in My Profile.</p>
+                        <p className="field__hint">Only {editing?.currency ?? currency} accounts are listed.</p>
                         {isEdit && editing.bankAccountName && !editing.bankAccountId && (
                             <p className="field__error">
                                 This entry belonged to the deleted account &ldquo;{editing.bankAccountName}&rdquo;. Saving changes

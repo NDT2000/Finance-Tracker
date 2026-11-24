@@ -27,12 +27,6 @@ export function ImportsCard({ imports }) {
                 {review > 0 && <Badge tone="warning">{review} awaiting review</Badge>}
                 {failed > 0 && <Badge tone="danger" icon={TriangleAlert}>{failed} failed</Badge>}
             </div>
-            {(review > 0 || pending > 0) && (
-                <p className="overview__footnote">Rows still processing or awaiting review are not in these totals yet.</p>
-            )}
-            {failed > 0 && (
-                <p className="overview__footnote">A failed import added nothing to your totals. Open imports to see what went wrong and retry.</p>
-            )}
             <div className="overview__side-footer">
                 <Link to="/imports" className="btn btn--ghost overview__side-link">
                     Go to imports <ArrowRight size={16} aria-hidden="true" />
@@ -50,7 +44,7 @@ export function PlanningCard() {
                 <ChartLine size={18} aria-hidden="true" /> Plan ahead
             </h2>
             <p className="card__description">
-                Try what-if scenarios for income, spending, investments and loans. Plans never change your actual transactions.
+                Explore what-if scenarios for income, spending, investments and loans.
             </p>
             <div className="overview__side-footer">
                 <Link to="/planning" className="btn btn--ghost overview__side-link">

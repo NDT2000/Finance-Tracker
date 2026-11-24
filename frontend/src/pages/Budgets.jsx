@@ -112,13 +112,14 @@ export default function Budgets() {
 
                 {budgets.length > 0 && (
                     <div className="budgets-summary">
-                        <StatCard icon={Target} label="Total budgeted" value={money(totals.budgeted)} hint={`${budgets.length} ${budgets.length === 1 ? 'category' : 'categories'}`} />
-                        <StatCard icon={Wallet} label="Spent in budgeted categories" value={money(totals.spent)} hint="Expenses minus refunds" />
-                        <StatCard icon={PiggyBank} label={remainingNegative ? 'Over in total' : 'Remaining'}
+                        <StatCard icon={Target} label="Monthly limits" value={money(totals.budgeted)}
+                            hint={`${budgets.length} ${budgets.length === 1 ? 'budget' : 'budgets'} · ${formatMonth(month)}`} />
+                        <StatCard icon={Wallet} label="Spent against limits" value={money(totals.spent)} />
+                        <StatCard icon={PiggyBank} label={remainingNegative ? 'Over across budgets' : 'Left across budgets'}
                             tone={remainingNegative ? 'negative' : 'neutral'}
                             value={remainingNegative ? money(totals.remaining.slice(1)) : money(totals.remaining)} />
-                        <StatCard icon={CircleAlert} label="Over budget" tone={totals.overCount ? 'negative' : 'neutral'}
-                            value={totals.overCount} hint={totals.overCount ? 'Spending already above the limit' : 'No budget exceeded so far'} />
+                        <StatCard icon={CircleAlert} label="Budgets exceeded" tone={totals.overCount ? 'negative' : 'neutral'}
+                            value={totals.overCount} />
                     </div>
                 )}
 
@@ -141,11 +142,6 @@ export default function Budgets() {
                                 onEdit={budget => open({ kind: 'edit', budget })} onDelete={budget => { setFormError(''); setDeleting(budget); }} />
                         ))}
                     </div>
-                    <p className="budgets-footnote">
-                        {forecastsAvailable
-                            ? `Month-end figures are estimates for ${formatMonth(month)}, projected from this month's spending so far with a simple trend model. They are not guaranteed, and fewer transactions give less reliable estimates.`
-                            : 'Month-end estimates are only made for the current month.'}
-                    </p>
                 </>}
 
                 {unbudgeted.length > 0 && (

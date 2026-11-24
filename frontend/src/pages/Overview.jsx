@@ -96,12 +96,11 @@ export default function Overview() {
                 <div className="overview__kpis">
                     <StatCard featured icon={Wallet} label="Monthly net cash flow"
                         tone={toneOf(current.netSavings)}
-                        value={formatMoney(current.netSavings, currency, { signed: true })}
-                        hint="Income minus net expenses this month. Not an account balance." />
+                        value={formatMoney(current.netSavings, currency, { signed: true })} />
                     <StatCard icon={TrendingUp} label="Total income" tone={toneOf(current.income) === 'positive' ? 'positive' : 'neutral'} value={formatMoney(current.income, currency)} />
                     <StatCard label="Net expenses" value={formatMoney(current.netExpenses, currency)}
                         hint={`${formatMoney(current.grossExpenses, currency)} spent, ${formatMoney(current.refunds, currency)} refunded`} />
-                    <StatCard label="Entries" value={current.transactionCount} hint="Manual and imported, in this month and currency" />
+                    <StatCard label="Entries" value={current.transactionCount} />
                 </div>
 
                 {current.transactionCount === 0 ? (
@@ -112,7 +111,7 @@ export default function Overview() {
                     </div>
                 ) : (
                     <div className="overview__grid">
-                        <CategoryDonut byCategory={current.byCategory} netExpenses={current.netExpenses}
+                        <CategoryDonut byCategory={current.byCategory}
                             currency={currency} digits={digits} periodLabel={periodLabel} />
                         <IncomeExpenseChart income={current.income} netExpenses={current.netExpenses}
                             currency={currency} periodLabel={periodLabel} />

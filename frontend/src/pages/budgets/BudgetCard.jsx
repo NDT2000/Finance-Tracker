@@ -50,10 +50,10 @@ export default function BudgetCard({ budget, spent, forecast, currency, digits, 
             </p>
 
             <div className="budget-card__forecast">
-                {!forecastsAvailable && <span>No forecast for past or future months.</span>}
+                {!forecastsAvailable && <span>No estimate for this month</span>}
                 {forecastsAvailable && estimate.state === 'loading' && <span>Calculating the month-end estimate…</span>}
                 {forecastsAvailable && (estimate.state === 'unavailable' || estimate.state === 'none') && (
-                    <span>Estimate unavailable right now. The figures above are unaffected.</span>
+                    <span>Estimate unavailable</span>
                 )}
                 {forecastsAvailable && estimate.state === 'ready' && <>
                     <span>

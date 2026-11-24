@@ -38,7 +38,7 @@ export function DailySpendingChart({ byDay, currency, periodLabel }) {
     const summary = `Daily net spending for ${periodLabel} across ${data.length} days with entries. `
         + `Highest was ${formatMoney(highest.amount, currency)} on ${shortDate(highest.date)}.`;
     return (
-        <ChartCard title="Daily net spending" description={`${periodLabel} · expenses minus refunds`} summary={summary}>
+        <ChartCard title="Daily net spending" description={periodLabel} summary={summary}>
             <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid vertical={false} stroke={chartColors.grid} />

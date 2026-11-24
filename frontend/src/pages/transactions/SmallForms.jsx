@@ -14,10 +14,7 @@ export function BankAssignForm({ transaction, accounts, busy, error, onSave, onC
                     <option value="">Unassigned</option>
                     {choices.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
-                <p className="field__hint">
-                    Only {transaction.currency} accounts are listed. The amount and source history stay the same, and any
-                    refunds of this entry move with it.
-                </p>
+                <p className="field__hint">Only {transaction.currency} accounts are listed.</p>
             </div>
             {error && <p className="form-error" role="alert">{error}</p>}
             <div className="form-actions">
@@ -97,9 +94,6 @@ export function ExportForm({ accounts, month, currency, onDone }) {
                     </select>
                 </div>
             </div>
-            <p className="field__hint" style={{ marginTop: 'var(--space-4)' }}>
-                Refund amounts stay positive and are identified by their type. Amounts in different currencies are never added together.
-            </p>
             {error && <p className="form-error" role="alert">{error}</p>}
             <div className="form-actions">
                 <button type="button" className="btn btn--secondary" onClick={onDone} disabled={busy}>Cancel</button>
