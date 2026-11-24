@@ -102,9 +102,9 @@ jobs:
 
   java-dependency-graph:
     name: Java dependency graph (Dependabot alerts)
-    # Only for main: sends the full Maven dependency tree, including transitive libraries, to
-    # GitHub so Dependabot can raise security alerts for them
-    if: github.event_name == 'push'
+    # Pushes to main (and manual runs): sends the full Maven dependency tree, including transitive
+    # libraries, to GitHub so Dependabot can raise security alerts for them
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: write   # required by the dependency submission API
@@ -118,3 +118,6 @@ jobs:
       - uses: advanced-security/maven-dependency-submission-action@v6
         with:
           directory: finance-tracker
+          # The action looks for mvnw at <directory>/<directory>/mvnw and fails; the runner's
+          # own Maven resolves the same dependency tree from pom.xml
+          ignore-maven-wrapper: true
