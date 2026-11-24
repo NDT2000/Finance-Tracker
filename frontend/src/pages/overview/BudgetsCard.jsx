@@ -1,4 +1,4 @@
-import { CircleCheck, Target, TriangleAlert } from 'lucide-react';
+import { CircleCheck, Plus, Target, TriangleAlert } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { EmptyState } from '../../components/ui/States';
 import { formatMoney } from '../../format';
@@ -42,6 +42,11 @@ export default function BudgetsCard({ budgets, byCategory, forecasts, currency, 
                     <h2 className="card__title" id="budgets-title">Budgets</h2>
                     <p className="card__description">{periodLabel}</p>
                 </div>
+                {budgets.length > 0 && (
+                    <button type="button" className="btn btn--secondary" onClick={onAddBudget}>
+                        <Plus size={16} aria-hidden="true" /> Add budget
+                    </button>
+                )}
             </div>
 
             {!budgets.length ? (

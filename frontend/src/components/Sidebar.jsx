@@ -1,10 +1,10 @@
 import { Link, NavLink } from 'react-router-dom';
-import { ChartLine, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Upload, UserRound } from 'lucide-react';
+import { ArrowLeftRight, ChartLine, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Upload, UserRound } from 'lucide-react';
 import Logo from './Logo';
 import { navigation, homePath } from '../navigation';
 import './Sidebar.css';
 
-const icons = { overview: LayoutDashboard, planning: ChartLine, imports: Upload, profile: UserRound };
+const icons = { overview: LayoutDashboard, transactions: ArrowLeftRight, planning: ChartLine, imports: Upload, profile: UserRound };
 
 // Navy sidebar with grouped links. collapsed shows icons only (labels stay available to screen
 // readers and as tooltips). onToggleCollapsed adds the collapse button (desktop only); onNavigate
