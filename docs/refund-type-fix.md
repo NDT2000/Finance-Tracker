@@ -47,11 +47,11 @@ then completed with its one intentionally rejected row.
 
 ## Running the PostgreSQL tests with Docker Engine 29
 
-Docker Engine 29 rejects the API version Testcontainers 1.21.3 requests by default (it answers
-`Status 400` with an empty body, reported as "Could not find a valid Docker environment"). Until
-Testcontainers is upgraded, run the backend tests with a newer API version:
+Docker Engine 29 rejected the API version Testcontainers 1.21.3 requested (it answered
+`Status 400` with an empty body, reported as "Could not find a valid Docker environment").
+Testcontainers 1.21.4 fixes this, so since 2026-11-24 the tests run without a workaround:
 
 ```bash
 cd finance-tracker
-./mvnw -B "-DargLine=-Dapi.version=1.44" test
+./mvnw -B verify
 ```

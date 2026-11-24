@@ -1,0 +1,6 @@
+# Reviewed historical findings (2026-11-24). Gitleaks reads this file automatically.
+# Both are JWT secrets committed in July 2026 that are no longer used: the current JWT secret
+# lives only in the untracked .env and differs from both. Each line ignores one exact finding
+# (commit:file:rule:line), so any new secret, in any commit, still fails the scan.
+942d8082081f2f1e11b29e2ba6d5eac7911935fc:.github/workflows/ci-cd.yml:generic-api-key:58
+8e4c0cc6cf5209a21e8048c4a07a22b407caa6a7:.env:generic-api-key:1

@@ -69,7 +69,7 @@ Preserve exact decimal money handling, currency rules, user ownership checks, re
 
 ## Review and CI
 
-PRs targeting main run the existing CI workflows. Fork PRs do not receive repository secrets. The current OWASP scan requires `NVD_API_KEY` and can therefore fail on fork PRs; existing historical-secret findings may also block CI. The maintainer must resolve these separately rather than asking contributors for secrets or skipping security checks. GitHub may require maintainer approval before running a first-time contributor's workflow.
+PRs targeting main run the CI workflow described in [docs/ci.md](docs/ci.md). It uses no repository secrets, so fork PRs get the same checks. GitHub may require maintainer approval before running a first-time contributor's workflow.
 
 Do not switch untrusted contributions to `pull_request_target` or run their code with repository secrets. Approval to run CI is separate from approval to merge. The owner should review workflow changes especially carefully.
 
