@@ -53,6 +53,14 @@ Buttons and fields are CSS classes, not components: `btn btn--primary|secondary|
 
 Formatting lives in `src/format.js`: `formatMoney` (exact decimal strings, optional sign), `formatAxisMoney` (short chart-axis labels), `amountStep` (input step for a currency's decimals), `currentMonth`, `formatMonth`, `shiftMonth`. All are unit-tested in `tests/format.test.js`.
 
+Exact money arithmetic for small display calculations (such as a budget's remaining amount) lives in `src/money.js`: `subtractMoney` and `percentOf` work in whole minor units (BigInt), so `350 - 335.95` is exactly `14.05`. The backend remains authoritative for every stored or reported total. Tests: `tests/money.test.js`.
+
+## Pages
+
+**Overview** (`src/pages/Overview.jsx`, sections in `src/pages/overview/`): `useOverviewData` loads the month's summary, transactions, budgets and bank accounts together, then forecasts separately so a slow or failing ML service never blocks the page. It ignores responses for a month or currency the user has already left, and the page only shows figures whose month and currency match the selection. Forecasts are requested for the current month **in UTC**, because that is the month the backend forecasts.
+
+`ManageEntries` holds the add-transaction, add-budget, bank-assignment, exclusion and export workflows until they move to the Transactions and Budgets pages (steps 1.4 and 1.5).
+
 **Component gallery:** run the dev server (`npm run dev` in `frontend/`) and open `http://localhost:5173/dev/components` to see every component and state. It exists only in development builds.
 
 ## Checks

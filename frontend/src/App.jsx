@@ -5,7 +5,7 @@ import AppLayout from './components/AppLayout';
 import { redirects, homePath } from './navigation';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
+import Overview from './pages/Overview';
 import Profile from './pages/Profile';
 import Imports from './pages/Imports';
 import Planning from './pages/Planning';
@@ -30,7 +30,7 @@ function App() {
 
                     {/* Layout route: every signed-in page renders inside the sidebar shell */}
                     <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
-                        <Route path="/overview" element={<Dashboard />} />
+                        <Route path="/overview" element={<Overview />} />
                         <Route path="/planning" element={<Planning />} />
                         <Route path="/imports" element={<Imports />} />
                         <Route path="/profile" element={<Profile />} />
