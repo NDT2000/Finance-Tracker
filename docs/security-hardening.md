@@ -18,7 +18,7 @@
 | 12 | Nginx adds CSP, X-Frame-Options, nosniff, Referrer-Policy and Permissions-Policy; HTTPS also adds HSTS. CSP disallows inline scripts; inline styles remain necessary for the existing React styles. |
 | 13 | Transaction/budget lookup includes the authenticated owner; absent and foreign IDs produce the same 404. Existing foreign records are verified unchanged. |
 | 15 | Security contract runs on PostgreSQL 15 Testcontainers, alongside H2. PostgreSQL migrations also get a separate repeatability/preservation test. The sprint financial-account model and its ownership tests are retained, including PostgreSQL verification. Budget month/year are quoted without renaming existing PostgreSQL columns. |
-| 16 | Dependabot for Maven/npm/Python/Docker/actions; branch CI runs npm audit, tests/build, Gitleaks and OWASP Dependency-Check. JJWT moved to 0.12.6. Frontend dependency updates resolved the observed npm advisories. Java vulnerability assessment requires the configured NVD scan. |
+| 16 | Dependabot for Maven/npm/Python/Docker/actions; CI ([docs/ci.md](ci.md)) runs npm audit, tests/build, Gitleaks and OSV-Scanner; Java dependencies are covered by Dependabot alerts through dependency-graph submission (the earlier OWASP/NVD job was replaced on 2026-11-24 because it required a key). JJWT moved to 0.12.6. Frontend dependency updates resolved the observed npm advisories. Java vulnerability alerts come from Dependabot. |
 | 17 | Auth success/failure, registration, invalid access, refresh rotation/reuse/failure, rate limiting, logout and password changes emit structured audit events. A dedicated rotating audit file is retained on the audit_data volume (90 days, capped at 1 GB). Failed unknown users have user_id=unknown. No sensitive request data is recorded. |
 | 18 | JWT secret is validated once at startup as even-length hexadecimal of at least 256 bits. Invalid secrets and excessive token lifetimes fail startup. |
 
@@ -126,11 +126,8 @@ external secret delivery remain deployment responsibilities. Keep audit log
 access restricted and forward logs to durable, access-controlled storage for
 production retention/tamper protection; local rotating files are not tamper-proof.
 
-Create the GitHub repository secret **NVD_API_KEY** for OWASP Dependency-Check.
-The CI scan fails with an explicit configuration error if it is absent; it does
-not silently skip the vulnerability gate. Java dependency CVEs and scan results
-must be reviewed once that job executes. The Java NVD scan and GitHub-hosted CI
-are not claimed verified merely because their workflow files exist.
+CI needs no repository secrets (see [docs/ci.md](ci.md)). Review Dependabot alerts in
+the repository's Security tab for Java dependency CVEs.
 The Gitleaks allowlist is scoped to the public deterministic JWT fixture in the
 test profile only; it does not exempt deployment configuration or other secrets.
 
@@ -165,11 +162,10 @@ Values are deliberately not reproduced here. They are absent from the current
 configuration. If either value was ever used outside a disposable test, rotate
 that deployment's JWT signing key and invalidate its sessions. Establish whether
 these were disposable fixtures before accepting an exact historical baseline.
-No history was rewritten and neither finding was suppressed. The full-history
-Gitleaks gate intentionally remains failing until these findings are resolved or
-reviewed; its redacted report is retained as a CI artifact. Together with the NVD
-scan, it blocks image publication. Working-tree cleanliness does not establish that
-historical credentials are safe or that deployed credentials were rotated.
+**Reviewed 2026-11-24:** neither value matches the JWT secret in use (which lives only
+in the untracked `.env`), and the project has not been publicly deployed. Both exact
+findings are listed in `.gitleaksignore` by fingerprint, so the full-history scan now
+passes while any new secret, in any commit, still fails it. No history was rewritten.
 
 Merge verification on `feature/finflow-sprint-1`: 72 backend tests passed with no
 failures, errors or skips, including the sprint's retained tests and financial

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { formatMoney, amountStep, currentMonth, formatMonth, shiftMonth, formatAxisMoney } from '../src/format.js';
+import { formatMoney, amountStep, currentMonth, formatMonth, shiftMonth, formatAxisMoney, formatDateTime } from '../src/format.js';
 
 test('formatMoney uses each currency\'s own decimal places', () => {
     assert.equal(formatMoney('1234.5', 'USD', { locale: 'en-US' }), '$1,234.50');
@@ -38,4 +38,9 @@ test('month helpers', () => {
     assert.equal(shiftMonth('2026-01', -1), '2025-12');
     assert.equal(shiftMonth('2026-12', 1), '2027-01');
     assert.equal(shiftMonth('2026-05', 0), '2026-05');
+});
+
+test('date and time for timestamps, a dash when missing', () => {
+    assert.equal(formatDateTime('2026-11-24T19:41:00Z', 'en-US', 'UTC'), 'Nov 24, 2026, 7:41 PM');
+    assert.equal(formatDateTime(null), '—');
 });

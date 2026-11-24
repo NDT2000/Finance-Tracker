@@ -1,7 +1,7 @@
 import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, CalendarRange, Pencil, Plus, Trash2 } from 'lucide-react';
 import MonthSelector from '../../components/ui/MonthSelector';
 import { EmptyState } from '../../components/ui/States';
-import { formatMoney, formatMonth } from '../../format';
+import { formatMoney } from '../../format';
 import { EVENT_KINDS, scheduleLabel } from './planningRules';
 
 const directionIcons = { in: ArrowDownLeft, out: ArrowUpRight, transfer: ArrowLeftRight };

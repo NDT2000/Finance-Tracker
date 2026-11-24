@@ -1,91 +1,124 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Landmark, Plus, Trash2 } from 'lucide-react';
 import api from '../api/axios';
+import Badge from '../components/ui/Badge';
+import Modal from '../components/ui/Modal';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
+import { EmptyState, ErrorState, LoadingSkeleton } from '../components/ui/States';
+import AccountForm from './accounts/AccountForm';
+import { accountTypeLabel, sortAccounts } from './accounts/accountRules';
+import './accounts/BankAccounts.css';
 
-const accountTypes = { CHECKING: 'Checking', SAVINGS: 'Savings', CREDIT: 'Credit', CASH: 'Cash' };
-
+// Named bank-account entries (docs/design-system.md §4). They are labels for transactions, never
+// live bank connections, so no balance is shown.
 export default function BankAccounts() {
-    const [accounts, setAccounts] = useState([]);
-    const [currencies, setCurrencies] = useState([{ code: 'USD' }]);
-    const [form, setForm] = useState({ name: '', type: 'CHECKING', currency: 'USD' });
-    const [loading, setLoading] = useState(true);
+    const [accounts, setAccounts] = useState(null);
+    const [currencies, setCurrencies] = useState([{ code: 'USD', digits: 2 }]);
     const [loadError, setLoadError] = useState('');
-    const [error, setError] = useState('');
-    const [notice, setNotice] = useState('');
-    const [busy, setBusy] = useState(false);
+    const [adding, setAdding] = useState(false);
     const [deleting, setDeleting] = useState(null);
+    const [busy, setBusy] = useState(false);
+    const [formError, setFormError] = useState('');
+    const [notice, setNotice] = useState('');
 
-    useEffect(() => {
-        let active = true;
-        api.get('/api/accounts').then(({ data }) => { if (active) setAccounts(data); })
-            .catch(() => { if (active) setLoadError('Your bank accounts could not be loaded.'); })
-            .finally(() => { if (active) setLoading(false); });
-        api.get('/api/analytics/currencies').then(({ data }) => { if (active) setCurrencies(data); }).catch(() => {});
-        return () => { active = false; };
+    const load = useCallback(async () => {
+        try {
+            const { data } = await api.get('/api/accounts');
+            setAccounts(data);
+            setLoadError('');
+        } catch {
+            setLoadError('Your bank accounts could not be loaded.');
+        }
     }, []);
 
-    async function reload() {
-        setLoading(true); setLoadError('');
-        try { const { data } = await api.get('/api/accounts'); setAccounts(data); }
-        catch { setLoadError('Your bank accounts could not be loaded. Please try again.'); }
-        finally { setLoading(false); }
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- loads from the API; state is set only after the request resolves
+        load();
+        api.get('/api/analytics/currencies').then(({ data }) => setCurrencies(data)).catch(() => {});
+    }, [load]);
+
+    function openAdd() {
+        setFormError('');
+        setAdding(true);
     }
 
-    async function add(event) {
-        event.preventDefault();
-        if (busy) return;
-        setError(''); setNotice('');
-        if (!form.name.trim()) { setError('Enter a bank or account name.'); return; }
+    async function change(request, message) {
         setBusy(true);
+        setFormError('');
         try {
-            const { data } = await api.post('/api/accounts', { ...form, name: form.name.trim() });
-            setAccounts(items => [...items, data]); setForm({ ...form, name: '' });
-            setNotice('Bank account added.');
-        } catch (err) { setError(err.response?.data?.message || 'Your bank account could not be added. Please try again.'); }
-        finally { setBusy(false); }
+            await request();
+            setAdding(false);
+            setDeleting(null);
+            setNotice(message);
+            await load();
+        } catch (err) {
+            setFormError(err.response?.data?.message || 'That change could not be saved. Please try again.');
+        } finally {
+            setBusy(false);
+        }
     }
 
-    async function remove() {
-        if (busy || !deleting) return;
-        setBusy(true); setError(''); setNotice('');
-        try {
-            await api.delete(`/api/accounts/${deleting.id}`);
-            setAccounts(items => items.filter(item => item.id !== deleting.id)); setDeleting(null);
-            setNotice('Bank account deleted. Your transaction history is unchanged.');
-        } catch (err) { setError(err.response?.data?.message || 'Your bank account could not be deleted. Please try again.'); }
-        finally { setBusy(false); }
-    }
+    const add = body => change(() => api.post('/api/accounts', body), `Added ${body.name}.`);
+    const remove = () => change(() => api.delete(`/api/accounts/${deleting.id}`), `Deleted ${deleting.name}. Its transactions are unchanged.`);
+    const addButton = (
+        <button type="button" className="btn btn--primary" onClick={openAdd}>
+            <Plus size={16} aria-hidden="true" /> Add account
+        </button>
+    );
 
-    return <section className="profile-card" id="profile-banks-panel" aria-labelledby="banks-title">
-        <h2 id="banks-title">Bank accounts</h2>
-        <p>Add multiple bank or account entries to your profile.</p>
-        <p className="profile-help">These are saved account labels. Bank login details and account numbers are not required. Deleting an entry keeps your transactions and imports.</p>
-        {error && <p role="alert" className="profile-error">{error}</p>}
-        {notice && <p role="status" className="profile-success">{notice}</p>}
-        {loading ? <p role="status">Loading bank accounts…</p> : loadError ? <div><p role="alert" className="profile-error">{loadError}</p><button type="button" onClick={reload}>Retry loading accounts</button></div> : <>
-            {!accounts.length ? <p>No bank accounts added yet.</p> : <ul className="profile-bank-list">{accounts.map(account => <li key={account.id}>
-                <div><strong>{account.name}</strong><span>{accountTypes[account.type] || account.type} · {account.currency}</span></div>
-                <button type="button" disabled={busy} aria-label={`Delete ${account.name}`} onClick={() => { setDeleting(account); setError(''); setNotice(''); }}>Delete</button>
-            </li>)}</ul>}
-            {deleting && <div className="profile-delete-confirm" role="group" aria-label="Confirm bank deletion">
-                <p>Delete “{deleting.name}” from your profile?</p>
-                <button type="button" disabled={busy} onClick={remove}>{busy ? 'Deleting…' : 'Confirm delete'}</button>
-                <button type="button" disabled={busy} onClick={() => setDeleting(null)}>Cancel deletion</button>
-            </div>}
-            <form onSubmit={add} aria-labelledby="add-bank-title">
-                <h3 id="add-bank-title">Add bank account</h3>
-                <label htmlFor="bank-name">Bank or account name</label>
-                <input id="bank-name" value={form.name} required maxLength={100} disabled={busy} placeholder="Example: My bank — savings"
-                    onChange={event => setForm({ ...form, name: event.target.value })}/>
-                <label htmlFor="bank-type">Account type</label>
-                <select id="bank-type" value={form.type} disabled={busy} onChange={event => setForm({ ...form, type: event.target.value })}>
-                    {Object.entries(accountTypes).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                </select>
-                <label htmlFor="bank-currency">Account currency</label>
-                <select id="bank-currency" value={form.currency} disabled={busy} onChange={event => setForm({ ...form, currency: event.target.value })}>
-                    {currencies.map(item => <option key={item.code} value={item.code}>{item.code}</option>)}
-                </select>
-                <button type="submit" className="profile-primary" disabled={busy}>{busy ? 'Working…' : 'Add bank account'}</button>
-            </form>
-        </>}
-    </section>;
+    return (
+        <div className="page">
+            <div className="page__head">
+                <div>
+                    <h1 className="page__title">Bank Accounts</h1>
+                    <p className="page__subtitle">Account labels for your transactions</p>
+                </div>
+                <div className="page__actions">{addButton}</div>
+            </div>
+
+            {notice && (
+                <div className="accounts-notice" role="status">
+                    <span>{notice}</span>
+                    <button type="button" className="btn btn--ghost" onClick={() => setNotice('')}>Dismiss</button>
+                </div>
+            )}
+
+            {loadError && !accounts && <div className="card"><ErrorState message={loadError} onRetry={load} /></div>}
+            {!loadError && !accounts && <div className="card"><LoadingSkeleton lines={3} label="Loading bank accounts…" /></div>}
+
+            {accounts && (accounts.length ? (
+                <ul className="accounts-grid">
+                    {sortAccounts(accounts).map(account => (
+                        <li key={account.id} className="card account-card">
+                            <span className="account-card__icon"><Landmark size={20} aria-hidden="true" /></span>
+                            <div className="account-card__body">
+                                <h2 className="account-card__name">{account.name}</h2>
+                                <div className="account-card__meta">
+                                    <Badge tone="info">{accountTypeLabel(account.type)}</Badge>
+                                    <span>{account.currency}</span>
+                                </div>
+                            </div>
+                            <button type="button" className="btn btn--ghost btn--icon account-card__delete" disabled={busy}
+                                aria-label={`Delete ${account.name}`} onClick={() => { setFormError(''); setDeleting(account); }}>
+                                <Trash2 size={18} aria-hidden="true" />
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <div className="card">
+                    <EmptyState icon={Landmark} title="No bank accounts yet"
+                        message="Add an account to assign transactions to it." action={addButton} />
+                </div>
+            ))}
+
+            <Modal open={adding} busy={busy} onClose={() => setAdding(false)} title="Add account">
+                {adding && <AccountForm currencies={currencies} busy={busy} error={formError} onSave={add} onCancel={() => setAdding(false)} />}
+            </Modal>
+
+            <ConfirmDialog open={Boolean(deleting)} busy={busy} title={deleting ? `Delete ${deleting.name}?` : ''}
+                message={deleting ? `The account label will be removed. Transactions assigned to it keep their history.${formError ? ` ${formError}` : ''}` : ''}
+                confirmLabel="Delete account" onConfirm={remove} onCancel={() => setDeleting(null)} />
+        </div>
+    );
 }

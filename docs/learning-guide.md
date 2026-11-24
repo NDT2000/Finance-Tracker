@@ -98,7 +98,7 @@ Docker/Compose is useful to run the local components. Redis supports the existin
 
 Stable source IDs allow automatic identity across exports. Unidentified overlapping exports require explicit review; the system does not guess. There is no FX conversion, financial-account balance reconciliation, streaming or external orchestration framework. Imported data has a defined CSV contract rather than automatic support for every bank format. Historical records default to USD to preserve the previous dollar-based app behavior; real historical currency correctness needs review.
 
-Local functional evidence is recorded in [verification](pipeline/verification.md). Production deployment, GitHub CI approval and the existing NVD-key/historical-secret gates remain separate and unverified. Completing the local goal does not imply these release requirements are complete.
+Local functional evidence is recorded in [verification](pipeline/verification.md). CI is described in [ci.md](ci.md). A production deployment has not been done yet; completing the local goal does not imply it.
 
 ## Financial planning scenarios
 

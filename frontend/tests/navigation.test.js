@@ -22,6 +22,10 @@ test('the home page and every redirect target are real pages', () => {
     }
 });
 
+test('Bank Accounts is a Manage page', () => {
+    assert.deepEqual(findPage('/accounts'), { group: 'Manage', item: { to: '/accounts', label: 'Bank Accounts', icon: 'accounts' } });
+});
+
 test('findPage matches a page and its sub-paths but not look-alike paths', () => {
     assert.equal(findPage('/planning').item.label, 'Financial Planning');
     assert.equal(findPage('/imports/42').group, 'Data Management');

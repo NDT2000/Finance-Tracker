@@ -46,7 +46,7 @@ export default function TransactionTable({ rows, currency, busy, onEdit, onAssig
                                     {t.origin === 'IMPORTED' ? (
                                         <span className="ledger__source">
                                             <Badge tone="info">Imported</Badge>
-                                            {t.importBatchId && <Link to="/imports" className="ledger__link">View import</Link>}
+                                            {t.importBatchId && <Link to={`/imports?batch=${t.importBatchId}`} className="ledger__link">View import</Link>}
                                         </span>
                                     ) : <Badge tone="pending">Manual</Badge>}
                                 </td>

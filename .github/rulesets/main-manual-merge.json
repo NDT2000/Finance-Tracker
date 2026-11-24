@@ -27,6 +27,29 @@
         "require_last_push_approval": false,
         "required_review_thread_resolution": true
       }
+    },
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": false,
+        "required_status_checks": [
+          {
+            "context": "Frontend (lint, test, build, audit)"
+          },
+          {
+            "context": "Backend (Spring Boot tests)"
+          },
+          {
+            "context": "ML service (unit tests)"
+          },
+          {
+            "context": "Secret scan (Gitleaks)"
+          },
+          {
+            "context": "Dependency vulnerabilities (OSV-Scanner)"
+          }
+        ]
+      }
     }
   ]
 }

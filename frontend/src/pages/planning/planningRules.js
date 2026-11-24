@@ -87,3 +87,9 @@ export function fundingChecks(projection, locale) {
     }
     return checks;
 }
+
+// Assumptions for a new scenario, starting in startMonth ("YYYY-MM").
+export const emptyPlan = startMonth => ({
+    name: '', currency: 'USD', startMonth, months: 12,
+    openingCash: '0', openingInvestments: '0', cashReserve: '0', annualReturnPercent: '0',
+});

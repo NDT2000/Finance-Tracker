@@ -1,11 +1,6 @@
 import { useState } from 'react';
-import { amountStep, currentMonth } from '../../format';
+import { amountStep } from '../../format';
 import { EVENT_KINDS, eventPayload, monthOptions, planPayload } from './planningRules';
-
-export const emptyPlan = () => ({
-    name: '', currency: 'USD', startMonth: currentMonth(), months: 12,
-    openingCash: '0', openingInvestments: '0', cashReserve: '0', annualReturnPercent: '0',
-});
 
 // Scenario assumptions. currencyLocked: a plan's currency cannot change once it has events.
 export function PlanForm({ initial, currencies, currencyLocked, busy, error, submitLabel, onSave, onCancel }) {

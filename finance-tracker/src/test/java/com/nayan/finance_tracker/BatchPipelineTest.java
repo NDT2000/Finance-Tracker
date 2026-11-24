@@ -258,6 +258,29 @@ class BatchPipelineTest {
   }
 
   @Test
+  void impossibleOrNonIsoDatesRejectOnlyTheirRows() {
+    User user = owner("dates");
+    UUID id =
+        upload(
+            user,
+            simple(
+                "2026-10-01,Food,Good,10.00,USD,EXPENSE,d1,1,\n"
+                    + "2026-13-01,Food,No such month,5.00,USD,EXPENSE,d2,1,\n"
+                    + "2026-2-30,Food,Not ISO,5.00,USD,EXPENSE,d3,1,\n"));
+    worker.runOnce();
+    assertThat(batches.owned(id, user.getId()).get("status"))
+        .isEqualTo("COMPLETED_WITH_REJECTIONS");
+    var rejected = batches.rows(id, user.getId(), 0, true);
+    assertThat(rejected).hasSize(2);
+    assertThat(rejected)
+        .allSatisfy(
+            r ->
+                assertThat(r.get("message"))
+                    .isEqualTo("Date must be a real date in YYYY-MM-DD format"));
+    assertThat(transactions.findByUserAndDeletedFalse(user)).hasSize(1);
+  }
+
+  @Test
   void missingIdentitiesRequireReviewAndRefundDependenciesCanBeReevaluated() {
     User user = owner("dependencies");
     UUID missing =

@@ -1,118 +1,136 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
+import { KeyRound, UserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import './Profile.css';
-import BankAccounts from './BankAccounts';
+import { ErrorState, LoadingSkeleton } from '../components/ui/States';
+import { passwordChangeErrors } from '../passwordRules';
+import './profile/Profile.css';
 
+const EMPTY = { current: '', next: '', confirm: '' };
+
+// Read-only personal details and password change. A successful change revokes every session,
+// so the user is sent to sign in again.
 export default function Profile() {
-    const { user, changePassword } = useAuth();
+    const { changePassword } = useAuth();
     const { setLogoutBlocked } = useOutletContext();
     const navigate = useNavigate();
-    const [fullName, setFullName] = useState(user?.fullName || '');
-    const [email, setEmail] = useState(user?.email || '');
-    const [loading, setLoading] = useState(true);
+    const [profile, setProfile] = useState(null);
     const [loadError, setLoadError] = useState('');
-    const [section, setSection] = useState('personal');
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmation, setConfirmation] = useState('');
-    const [changingPassword, setChangingPassword] = useState(false);
-    const [passwordError, setPasswordError] = useState('');
+    const [form, setForm] = useState(EMPTY);
+    const [errors, setErrors] = useState({});
+    const [saving, setSaving] = useState(false);
+    const [saveError, setSaveError] = useState('');
 
-    useEffect(() => {
-        let active = true;
-        api.get('/api/profile').then(({ data }) => {
-            if (active) { setFullName(data.fullName); setEmail(data.email); }
-        }).catch(() => {
-            if (active) setLoadError('Your profile could not be loaded. Please reload the page to try again.');
-        }).finally(() => { if (active) setLoading(false); });
-        return () => { active = false; };
-    }, []);
+    async function load() {
+        try {
+            const { data } = await api.get('/api/profile');
+            setProfile(data);
+            setLoadError('');
+        } catch {
+            setLoadError('Your profile could not be loaded.');
+        }
+    }
 
-    const busy = changingPassword;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loads from the API; state is set only after the request resolves
+    useEffect(() => { load(); }, []);
 
     // Logout (in the account menu) waits until a password change has finished saving
     useEffect(() => {
-        setLogoutBlocked(changingPassword);
+        setLogoutBlocked(saving);
         return () => setLogoutBlocked(false);
-    }, [changingPassword, setLogoutBlocked]);
-    const initials = (user?.fullName || 'User').trim().split(/\s+/)
-        .filter(Boolean).map(word => Array.from(word)[0]).slice(0, 2).join('').toUpperCase();
+    }, [saving, setLogoutBlocked]);
 
-    async function savePassword(event) {
+    const set = (key, value) => {
+        setForm(f => ({ ...f, [key]: value }));
+        setErrors(e => ({ ...e, [key]: '' }));
+    };
+
+    async function submit(event) {
         event.preventDefault();
-        if (busy) return;
-        setPasswordError('');
-        if (newPassword !== confirmation) { setPasswordError('The new passwords do not match.'); return; }
-        if ([...newPassword].length < 15 || new TextEncoder().encode(newPassword).length > 72) {
-            setPasswordError('Use at least 15 characters and at most 72 UTF-8 bytes.'); return;
-        }
-        setChangingPassword(true);
+        if (saving) return;
+        setSaveError('');
+        const next = passwordChangeErrors(form);
+        setErrors(next);
+        if (Object.keys(next).length) return;
+        setSaving(true);
         try {
-            await changePassword(currentPassword, newPassword);
-            setCurrentPassword(''); setNewPassword(''); setConfirmation('');
+            await changePassword(form.current, form.next);
+            setForm(EMPTY);
             navigate('/login', { replace: true });
         } catch (error) {
-            setCurrentPassword('');
-            setPasswordError(error.response?.status === 401
-                ? 'Your current password could not be verified. Please try again.'
+            setForm(f => ({ ...f, current: '' }));
+            setSaveError(error.response?.status === 401
+                ? 'Your current password is incorrect.'
                 : error.response?.data?.message || 'Your password could not be changed. Please try again.');
-        } finally { setChangingPassword(false); }
+        } finally {
+            setSaving(false);
+        }
     }
 
+    const fieldProps = key => ({
+        value: form[key], disabled: saving, maxLength: key === 'current' ? 256 : 72,
+        'aria-invalid': Boolean(errors[key]),
+        'aria-describedby': errors[key] ? `password-${key}-error` : key === 'next' ? 'password-next-hint' : undefined,
+        onChange: e => set(key, e.target.value),
+    });
+    const fieldError = key => errors[key] && <p className="field__error" id={`password-${key}-error`}>{errors[key]}</p>;
+
     return (
-        <div className="profile-page">
-            <main className="profile-content">
-                <div className="profile-heading">
-                    <div className="profile-avatar" aria-hidden="true">{initials}</div>
-                    <div><p className="profile-eyebrow">YOUR ACCOUNT</p><h1>My profile</h1>
-                        <p>View your personal details, change your password and manage bank accounts.</p></div>
+        <div className="page">
+            <div className="page__head">
+                <div>
+                    <h1 className="page__title">My Profile</h1>
+                    <p className="page__subtitle">Personal details and password</p>
                 </div>
-                {loading ? <p role="status">Loading your profile…</p> : loadError ? (
-                    <p className="profile-error" role="alert">{loadError}</p>
-                ) : (
-                    <div className="profile-layout">
-                        <nav className="profile-menu" aria-label="Profile menu">
-                            <button type="button" aria-pressed={section === 'personal'} disabled={busy} onClick={() => setSection('personal')}>Personal details</button>
-                            <button type="button" aria-pressed={section === 'banks'} disabled={busy} onClick={() => {
-                                setSection('banks'); setCurrentPassword(''); setNewPassword(''); setConfirmation(''); setPasswordError('');
-                            }}>Bank accounts</button>
-                        </nav>
-                        {section === 'banks' ? <BankAccounts/> : <div className="profile-grid" id="profile-personal-panel">
-                        <section className="profile-card" aria-labelledby="details-title">
-                            <h2 id="details-title">Personal details</h2>
-                            <div className="profile-details">
-                                <label htmlFor="profile-name">Full name</label>
-                                <input id="profile-name" autoComplete="name" value={fullName} readOnly aria-describedby="name-help"/>
-                                <p id="name-help" className="profile-help">Your full name cannot be changed.</p>
-                                <label htmlFor="profile-email">Email address</label>
-                                <input id="profile-email" type="email" autoComplete="email" value={email} readOnly aria-describedby="email-help"/>
-                                <p id="email-help" className="profile-help">Your sign-in email is read-only.</p>
+            </div>
+
+            {loadError && !profile && <div className="card"><ErrorState message={loadError} onRetry={load} /></div>}
+            {!loadError && !profile && <div className="card"><LoadingSkeleton lines={3} label="Loading your profile…" /></div>}
+
+            {profile && (
+                <div className="profile-grid">
+                    <section className="card" aria-labelledby="details-title">
+                        <div className="card__header">
+                            <h2 className="card__title profile-title" id="details-title"><UserRound size={18} aria-hidden="true" /> Personal details</h2>
+                        </div>
+                        <dl className="profile-details">
+                            <dt>Full name</dt><dd>{profile.fullName}</dd>
+                            <dt>Email</dt><dd>{profile.email}</dd>
+                        </dl>
+                    </section>
+
+                    <section className="card" aria-labelledby="password-title">
+                        <div className="card__header">
+                            <div>
+                                <h2 className="card__title profile-title" id="password-title"><KeyRound size={18} aria-hidden="true" /> Change password</h2>
+                                <p className="card__description">You will be signed out on every device.</p>
                             </div>
-                        </section>
-                        <section className="profile-card" aria-labelledby="password-title">
-                            <h2 id="password-title">Change password</h2>
-                            <p>Changing your password signs you out on every device.</p>
-                            <form onSubmit={savePassword}>
-                                <label htmlFor="current-password">Current password</label>
-                                <input id="current-password" type="password" autoComplete="current-password" required maxLength={256}
-                                    value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} disabled={busy} />
-                                <label htmlFor="new-password">New password</label>
-                                <input id="new-password" type="password" autoComplete="new-password" required maxLength={72}
-                                    aria-describedby="password-help" value={newPassword} onChange={event => setNewPassword(event.target.value)} disabled={busy} />
-                                <p id="password-help" className="profile-help">At least 15 characters, up to 72 UTF-8 bytes. Avoid common passwords.</p>
-                                <label htmlFor="confirm-password">Confirm new password</label>
-                                <input id="confirm-password" type="password" autoComplete="new-password" required maxLength={72}
-                                    value={confirmation} onChange={event => setConfirmation(event.target.value)} disabled={busy} />
-                                {passwordError && <p className="profile-error" role="alert">{passwordError}</p>}
-                                <button className="profile-primary" type="submit" disabled={busy}>{changingPassword ? 'Updating…' : 'Update password'}</button>
-                            </form>
-                        </section>
-                        </div>}
-                    </div>
-                )}
-            </main>
+                        </div>
+                        <form className="profile-password" onSubmit={submit} noValidate>
+                            <div className="field">
+                                <label htmlFor="password-current">Current password</label>
+                                <input id="password-current" type="password" autoComplete="current-password" {...fieldProps('current')} />
+                                {fieldError('current')}
+                            </div>
+                            <div className="field">
+                                <label htmlFor="password-next">New password</label>
+                                <input id="password-next" type="password" autoComplete="new-password" {...fieldProps('next')} />
+                                {fieldError('next') || <p className="field__hint" id="password-next-hint">At least 15 characters</p>}
+                            </div>
+                            <div className="field">
+                                <label htmlFor="password-confirm">Confirm new password</label>
+                                <input id="password-confirm" type="password" autoComplete="new-password" {...fieldProps('confirm')} />
+                                {fieldError('confirm')}
+                            </div>
+                            {saveError && <p className="form-error" role="alert">{saveError}</p>}
+                            <div className="form-actions">
+                                <button type="submit" className="btn btn--primary" disabled={saving}>{saving ? 'Updating…' : 'Update password'}</button>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            )}
         </div>
     );
 }

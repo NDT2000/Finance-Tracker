@@ -2,6 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import Logo from './Logo';
 import UserMenu from './UserMenu';
+import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../useTheme';
 import { findPage, homePath } from '../navigation';
 import './AppHeader.css';
 
@@ -9,6 +11,7 @@ import './AppHeader.css';
 // in the navigation, and the account menu. toggleRef points at the drawer button so focus can return to it.
 export default function AppHeader({ onOpenNavigation, navigationOpen, logoutDisabled, toggleRef }) {
     const page = findPage(useLocation().pathname);
+    const [theme] = useTheme();
     return (
         <header className="app-header">
             <button type="button" ref={toggleRef} className="app-header__nav-toggle" onClick={onOpenNavigation}
@@ -16,7 +19,7 @@ export default function AppHeader({ onOpenNavigation, navigationOpen, logoutDisa
                 <Menu size={22} aria-hidden="true" />
             </button>
             <Link to={homePath} className="app-header__mobile-logo">
-                <Logo variant="light" size={30} compact />
+                <Logo variant={theme === 'dark' ? 'dark' : 'light'} size={30} compact />
             </Link>
             {page && (
                 <p className="app-header__context">
@@ -26,6 +29,7 @@ export default function AppHeader({ onOpenNavigation, navigationOpen, logoutDisa
                 </p>
             )}
             <div className="app-header__account">
+                <ThemeToggle />
                 <UserMenu logoutDisabled={logoutDisabled} />
             </div>
         </header>

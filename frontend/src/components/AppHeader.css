@@ -9,7 +9,12 @@
 .app-header__group { color: var(--color-text-muted); }
 .app-header__separator { color: var(--color-control-border); }
 .app-header__page { color: var(--color-heading); font-weight: 600; }
-.app-header__account { margin-left: auto; }
+.app-header__account { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); }
+.app-header .theme-toggle {
+    display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0;
+    border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-heading); cursor: pointer;
+}
+.app-header .theme-toggle:hover { background: var(--color-hover); }
 
 /* Drawer button and compact logo: phones and tablets only */
 .app-header__nav-toggle,

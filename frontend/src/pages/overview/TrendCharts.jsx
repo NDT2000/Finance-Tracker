@@ -1,13 +1,14 @@
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import ChartCard from '../../components/ui/ChartCard';
-import { chartColors } from '../../chartColors';
+import { useChartColors } from '../../useTheme';
 import { formatAxisMoney, formatMoney } from '../../format';
 
-const axisTick = { fontSize: 12, fill: chartColors.axisText };
 const shortDate = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
 // Income against net expenses for the month, as two labelled bars.
 export function IncomeExpenseChart({ income, netExpenses, currency, periodLabel }) {
+    const chartColors = useChartColors();
+    const axisTick = { fontSize: 12, fill: chartColors.axisText };
     const data = [
         { name: 'Income', amount: income, value: Number(income), color: chartColors.emerald },
         { name: 'Net expenses', amount: netExpenses, value: Number(netExpenses), color: chartColors.royalBlue },
@@ -32,6 +33,8 @@ export function IncomeExpenseChart({ income, netExpenses, currency, periodLabel 
 
 // Net spending per day (expenses minus refunds). Days without entries are not drawn as zero.
 export function DailySpendingChart({ byDay, currency, periodLabel }) {
+    const chartColors = useChartColors();
+    const axisTick = { fontSize: 12, fill: chartColors.axisText };
     const data = byDay.map(d => ({ date: d.date, amount: d.amount, value: Number(d.amount) }));
     if (!data.length) return null;
     const highest = data.reduce((max, d) => (d.value > max.value ? d : max), data[0]);

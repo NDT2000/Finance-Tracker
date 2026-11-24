@@ -2,11 +2,10 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChart as PieIcon } from 'lucide-react';
 import ChartCard from '../../components/ui/ChartCard';
 import { EmptyState } from '../../components/ui/States';
-import { chartColors } from '../../chartColors';
+import { useChartColors } from '../../useTheme';
 import { formatMoney } from '../../format';
 import { percentOf, toMinorUnits, fromMinorUnits } from '../../money';
 
-const sliceColors = [chartColors.royalBlue, chartColors.emerald, chartColors.teal, chartColors.purple, chartColors.amber, chartColors.slate];
 const MAX_SLICES = 5;
 
 // Whole percentages, but a small non-zero share reads "<1%" rather than a misleading "0%"
@@ -18,6 +17,8 @@ function shareLabel(amount, total, digits) {
 // Net spending per category as a donut: the five largest categories, the rest grouped as "Other".
 // Categories whose refunds cancel their spending (net zero or less) are left out of the drawing.
 export default function CategoryDonut({ byCategory, currency, digits, periodLabel }) {
+    const chartColors = useChartColors();
+    const sliceColors = [chartColors.royalBlue, chartColors.emerald, chartColors.teal, chartColors.purple, chartColors.amber, chartColors.slate];
     const positive = byCategory
         .filter(c => toMinorUnits(c.amount, digits) > 0n)
         .sort((a, b) => (toMinorUnits(b.amount, digits) > toMinorUnits(a.amount, digits) ? 1 : -1));

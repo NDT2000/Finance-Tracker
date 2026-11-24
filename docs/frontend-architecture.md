@@ -8,17 +8,23 @@ All colours, type sizes, spacing, radii and layout sizes are CSS variables in `f
 
 1. **Raw palette** (`--navy-900`, `--emerald-600`, ...): the exact hex values from the spec.
 2. **Semantic tokens** (`--color-action`, `--color-danger-fg`, `--color-text-muted`, ...): named after their job. Components use only these.
-3. **Dark theme**: the same semantic names with dark values, applied by `<html data-theme="dark">` (not switched on yet).
+3. **Dark theme**: the same semantic names with dark values, applied by `<html data-theme="dark">`.
 
-Legacy token names at the bottom of the file keep not-yet-rebuilt pages working; each is removed as its page is rebuilt. Chart colours live in `src/chartColors.js` because Recharts needs real values.
+**Light and dark mode.** `src/theme.js` decides the theme: a saved choice wins, otherwise the system setting. `public/theme-init.js` applies the same choice before the page draws, so it never flashes the wrong colours. It is a file rather than an inline script because the Content-Security-Policy only allows same-origin scripts. `ThemeToggle` in the header switches the theme and remembers the choice in `localStorage`; if storage is blocked, the choice lasts until reload. Components read the theme with `useTheme()` from `src/useTheme.js`.
+
+- Text links and text buttons use `--color-action-text`; primary buttons use `--color-action` with `--color-on-action` text. In dark mode the spec's `#3B82F6` stays the button colour, but as text on Navy Slate it is only 3.98:1, so links use a lighter blue.
+- Form-field edges use `--color-control-border` (Slate Gray), which meets the 3:1 that WCAG 1.4.11 asks for.
+- **Contrast is tested:** `tests/contrast.test.js` reads `theme.css` and checks every foreground/background pair the UI uses, in both themes: 4.5:1 for text, 3:1 for focus rings, field edges and fills. A colour change that breaks contrast fails `npm test`.
+
+Chart colours are hex values in `chartPalette()` in `src/theme.js`, because Recharts needs real values. Charts get them through `useChartColors()`, so they redraw when the theme changes. `tests/theme.test.js` checks that both palettes have the same colours and that series reach 3:1 against the card.
 
 ## Routing and the app shell
 
 ```
 <AuthProvider>
-  /login, /register                      public pages
+  /  /login  /register                   public pages (/ is the landing page)
   <PrivateRoute><AppLayout>              layout route: every signed-in page renders inside it
-     /overview  /planning  /imports  /profile
+     /overview  /transactions  /budgets  /accounts  /planning  /imports  /profile
   /dashboard -> /overview                redirects for old addresses (src/navigation.js)
   anything else -> /overview             PrivateRoute sends signed-out visitors to /login
 ```
@@ -29,10 +35,14 @@ Legacy token names at the bottom of the file keep not-yet-rebuilt pages working;
 |---|---|---|
 | Sidebar | `Sidebar.jsx` | Navy, grouped links with Lucide icons, active page marked (also announced via `aria-current`). Desktop can collapse it to icons only; the choice is kept in `localStorage` (ignored if storage is blocked). |
 | Mobile drawer | `AppLayout.jsx` | Under 900px the sidebar is replaced by a drawer opened from the header. It is a modal dialog: focus moves into it, Tab stays inside, Escape or the backdrop closes it and focus returns to the menu button. Choosing a page closes it. |
-| Header | `AppHeader.jsx` | 64px. Shows the current group and page, the account menu, and on phones the drawer button and compact logo. |
+| Header | `AppHeader.jsx` | 64px. Shows the current group and page, the dark-theme toggle, the account menu, and on phones the drawer button and compact logo. |
 | Account menu | `UserMenu.jsx` | Initials button opening My profile and Logout. |
 
-**Adding a page:** add its route inside the layout route in `App.jsx`, and an entry in `src/navigation.js` (the sidebar and header read it). `tests/navigation.test.js` checks the navigation stays consistent. Only pages that exist are listed; unfinished features are never shown as available.
+**Adding a page:** add a `lazy()` import and its route inside the layout route in `App.jsx`. Signed-in pages are code-split, so the landing and sign-in pages never download the charts library, and `AppLayout` shows a placeholder inside the shell while a page loads. Then add an entry in `src/navigation.js` (the sidebar and header read it). `tests/navigation.test.js` checks the navigation stays consistent. Only pages that exist are listed; unfinished features are never shown as available.
+
+**Landing page** (`src/pages/Landing.jsx`, parts in `src/pages/landing/`): the public page at `/`, following design-system §21. All copy is in `landingContent.js`. `tests/landingContent.test.js` checks the spec headline, that only the five available features appear, that every screenshot exists with alt text, and that the copy has no unavailable features (AI chat, assistants) or invented claims (reviews, statistics, certifications, percentages). Signed-in visitors see "Open app" instead of the sign-in buttons. The screenshots in `public/landing/` are real captures of the app at 1440×900 and 2× scale, using sample data (the footer says so). Retake them when those pages change.
+
+**Sign in and Create account** (`pages/Login.jsx`, `pages/Register.jsx`) share `pages/auth/AuthLayout.jsx` and `Auth.css`, and use the same `field` and `btn` classes as the rest of the app. Every label is tied to its input (`htmlFor`/`id`), inputs carry `autocomplete` values for password managers, and errors are announced (`role="alert"`).
 
 **Page-to-layout communication:** the layout passes `{ setLogoutBlocked }` as outlet context. The profile page uses it (`useOutletContext()`) to keep Logout unavailable while a password change is saving.
 
@@ -54,6 +64,8 @@ Reusable pieces live in `src/components/ui/`, styled by `ui.css` (tokens only):
 | `MonthSelector`, `CurrencySelector` | Month (with previous/next) and currency pickers with linked labels. |
 
 Buttons and fields are CSS classes, not components: `btn btn--primary|secondary|ghost|danger|icon`, and `field` around a label + input with optional `field__hint` / `field__error`.
+
+Data tables use the `ledger` / `ledger__table` classes in `ui.css` (Transactions and Imports). Give each cell a `data-label`: under 760px every row becomes a labelled card, keeping the table semantics for screen readers.
 
 Formatting lives in `src/format.js`: `formatMoney` (exact decimal strings, optional sign), `formatAxisMoney` (short chart-axis labels), `amountStep` (input step for a currency's decimals), `currentMonth`, `formatMonth`, `shiftMonth`. All are unit-tested in `tests/format.test.js`.
 
@@ -81,10 +93,23 @@ The rules live in `transactionRules.js`, unit-tested in `tests/transactionRules.
 
 Every projected figure (monthly balances, combined value, lowest cash, funding flags) is displayed from `GET /api/plans/{id}/projection`; the browser never recalculates them. `planningRules.js` (tested in `tests/planningRules.test.js`) only labels and packages: event types and their effects, plan-month to calendar-month mapping, request bodies, and the funding checks list. The page reproduces the hand-worked example in [financial planning](financial-planning.md). "Lowest cash" includes the opening cash, matching the backend's `minimumCash`.
 
-On screens under 760px the ledger table shows each row as a labelled card (`data-label` + CSS), keeping the table semantics for screen readers.
+**Import Transactions** (`src/pages/Imports.jsx`, parts in `src/pages/imports/`): CSV upload, import freshness, history, and the selected import with its rows. The selected import is in the URL (`/imports?batch=<id>`); "View import" on Transactions links straight to it. `useImports` loads history, the import's detail and one page of rows, plus freshness counts from the monthly summary's `imports` block (those counts cover all imports, whatever the month). It polls every 2 seconds only while an import is queued or processing.
+
+- The status badge comes from the backend status, so an import never reads as imported before processing has committed it. "Imported with rejections" and "Needs review" state partial success; outcome counts are shown only as the backend returns them.
+- Rows show their original values as uploaded. Rows that need review offer "Same as #id" for each exact match the backend found, "Keep as new" or "Ignore row".
+- "Rejected rows (CSV)" collects every rejected row and builds the report in the browser: reason, code and the original columns. Cells that start with `= + - @` get the same apostrophe guard as the backend's transaction export.
+- Stage, attempts, timings, error code, import ID and file hash sit in a collapsed "Processing details" section.
+
+`importRules.js` (tested in `tests/importRules.test.js`) holds the upload checks (mirroring [the CSV contract](pipeline/contract.md)), status and outcome labels, the result summary, error messages, the rejection report and the polling rule.
+
+**Bank Accounts** (`src/pages/BankAccounts.jsx`, parts in `src/pages/accounts/`): named account labels with type and currency, added in a `Modal` and deleted after a `ConfirmDialog`. Deleting keeps the transactions and their history. The page shows no balances and never presents an entry as a live bank connection. `accountRules.js` (tested in `tests/accountRules.test.js`) mirrors the backend `CreateAccountRequest` checks.
+
+**My Profile** (`src/pages/Profile.jsx`): read-only personal details and the password change. A successful change revokes every session, so the page returns to sign-in. The password checks in `src/passwordRules.js` (tested in `tests/passwordRules.test.js`) mirror the backend `PasswordPolicy`: at least 15 characters, counted as characters so an emoji is one, and at most 72 UTF-8 bytes. Create account uses the same rules. The backend also rejects common passwords and has the final say.
 
 **Component gallery:** run the dev server (`npm run dev` in `frontend/`) and open `http://localhost:5173/dev/components` to see every component and state. It exists only in development builds.
 
 ## Checks
 
-From `frontend/`: `npm test` (Node's built-in test runner) and `npm run build`. `npm run lint` currently fails because the project has no `eslint.config.js` for ESLint 9+; that is scheduled for the quality pass (step 1.10).
+From `frontend/`: `npm test` (Node's built-in test runner), `npm run lint` (ESLint flat config in `eslint.config.js`: recommended JavaScript, React hooks and fast-refresh rules) and `npm run build`.
+
+The React hooks rule `set-state-in-effect` stays on. It cannot follow `async` code, so the few effects that only load data from the API carry a one-line exception saying that state is set after the request resolves. State that should reset when something changes is derived instead, for example the Transactions "show more" count and the mobile drawer.

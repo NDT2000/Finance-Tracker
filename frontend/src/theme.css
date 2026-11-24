@@ -24,6 +24,20 @@
     --slate-700: #334155;    /* Dark Slate */
     --slate-950: #020617;
     --white: #FFFFFF;
+    /* Dark-theme companions (Tailwind-scale values, chosen to pass WCAG AA on Navy Slate) */
+    --blue-300: #93C5FD;
+    --blue-400: #60A5FA;
+    --blue-950: #172554;
+    --emerald-300: #6EE7B7;
+    --emerald-900: #064E3B;
+    --red-300: #FCA5A5;
+    --red-400: #F87171;
+    --red-950: #450A0A;
+    --amber-300: #FCD34D;
+    --amber-500: #F59E0B;
+    --amber-950: #451A03;
+    --violet-300: #C4B5FD;
+    --violet-950: #2E1065;
 }
 
 /* Layer 2: semantic tokens, light theme (the default) */
@@ -45,13 +59,16 @@
 
     /* Lines */
     --color-border: var(--slate-200);
-    --color-control-border: var(--slate-300); /* inputs need a stronger edge than cards */
+    --color-control-border: var(--slate-500); /* form-field edges need 3:1 (WCAG 1.4.11) */
 
     /* Actions */
     --color-action: var(--blue-800);
     --color-action-hover: var(--blue-700);
+    --color-action-text: var(--blue-800);   /* links and text buttons */
+    --color-on-action: var(--white);        /* text on primary buttons */
+    --color-on-danger: var(--white);        /* text on danger buttons */
     --color-focus: var(--blue-700);         /* 3:1 or better against white */
-    --color-focus-on-dark: #93C5FD;          /* the same ring, visible on navy */
+    --color-focus-on-dark: var(--blue-300);          /* the same ring, visible on navy */
 
     /* Money */
     --color-positive: var(--emerald-700);    /* positive text */
@@ -107,33 +124,39 @@
     --duration: 200ms;
 }
 
-/* Layer 3: dark theme, from section 20. Not switched on yet; set data-theme="dark" on <html> to use. */
+/* Layer 3: dark theme (section 20), switched on by data-theme="dark" on <html> (see src/theme.js).
+   tests/contrast.test.js checks every text/background pair in both themes. */
 :root[data-theme='dark'] {
     --color-bg: var(--slate-950);
     --color-surface: var(--navy-800);
-    --color-hover: #334155;
+    --color-hover: var(--slate-700);
     --color-heading: var(--slate-50);
-    --color-text: #E2E8F0;
+    --color-text: var(--slate-200);
     --color-text-muted: var(--slate-400);
-    --color-border: #334155;
-    --color-control-border: #475569;
+    --color-border: var(--slate-700);
+    --color-control-border: var(--slate-500);
+    /* #3B82F6 stays the button colour from the spec. As text on Navy Slate it is only 3.98:1, so links use a lighter blue. */
     --color-action: var(--blue-500);
-    --color-action-hover: #60A5FA;
-    --color-focus: #93C5FD;
+    --color-action-hover: var(--blue-400);
+    --color-action-text: var(--blue-300);
+    --color-on-action: var(--navy-900);
+    --color-on-danger: var(--navy-900);
+    --color-focus: var(--blue-300);
     --color-positive: var(--emerald-400);
-}
+    --color-estimate: var(--slate-500);
 
-/* Legacy names used by pages not yet rebuilt. Each is removed as its page is rebuilt (steps 1.3-1.8). */
-:root {
-    --color-primary-button: var(--color-action);
-    --color-primary-button-hover: var(--color-action-hover);
-    --color-card: var(--color-surface);
-    --color-text-secondary: var(--color-text-muted);
-    --color-income-text: var(--color-success-fg);
-    --color-expense: var(--color-danger-fg);
-    --color-expense-tint: var(--color-danger-bg);
-    --color-tint: var(--color-info-bg);
-    --font: var(--font-sans);
+    --color-success-fg: var(--emerald-300);  --color-success-bg: var(--emerald-900);
+    --color-danger-fg: var(--red-400);       --color-danger-bg: var(--red-950);
+    --color-danger-strong: var(--red-300);
+    --color-warning-fg: var(--amber-300);    --color-warning-bg: var(--amber-950);
+    --color-warning-fill: var(--amber-500);
+    --color-info-fg: var(--blue-300);        --color-info-bg: var(--blue-950);
+    --color-ai-fg: var(--violet-300);        --color-ai-bg: var(--violet-950);
+    --color-pending-fg: var(--slate-300);    --color-pending-bg: var(--slate-700);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
 }
 
 /* Base */

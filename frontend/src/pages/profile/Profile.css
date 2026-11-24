@@ -1,0 +1,8 @@
+.profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--space-6); align-items: start; }
+.profile-title { display: flex; align-items: center; gap: var(--space-2); }
+.profile-details { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-3) var(--space-6); margin: 0; font-size: var(--text-sm); }
+.profile-details dt { color: var(--color-text-muted); }
+.profile-details dd { margin: 0; color: var(--color-heading); font-weight: 500; overflow-wrap: anywhere; }
+.profile-password { display: flex; flex-direction: column; gap: var(--space-4); }
+.profile-password .form-actions { margin-top: 0; }
+.profile-password .form-error { margin: 0; }

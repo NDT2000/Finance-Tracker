@@ -18,4 +18,6 @@ export function AuthProvider({ children }) {
         login: authClient.login, logout: authClient.logout,
         updateUser: authClient.updateUser, changePassword: authClient.changePassword }}>{loading ? <p>Loading session…</p> : children}</AuthContext.Provider>;
 }
+// Hook and provider live together by design; this only affects hot reload while developing
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() { return useContext(AuthContext); }

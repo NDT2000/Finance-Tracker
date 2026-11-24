@@ -1,0 +1,23 @@
+.accounts-notice {
+    display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    border-radius: var(--radius-card); background: var(--color-success-bg); color: var(--color-success-fg); font-size: var(--text-sm); font-weight: 500;
+}
+.accounts-notice span { flex: 1; }
+.accounts-notice .btn { min-height: 36px; color: var(--color-success-fg); }
+
+.accounts-grid {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: var(--space-4);
+}
+.account-card { display: flex; align-items: flex-start; gap: var(--space-3); }
+.account-card__icon {
+    flex: none; display: grid; place-items: center; width: 40px; height: 40px;
+    border-radius: var(--radius-control); background: var(--color-info-bg); color: var(--color-info-fg);
+}
+.account-card__body { flex: 1; min-width: 0; }
+.account-card__name { margin: 0; font-size: var(--text-base); font-weight: 600; color: var(--color-heading); overflow-wrap: anywhere; }
+.account-card__meta { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); font-size: var(--text-sm); color: var(--color-text-muted); }
+.account-card__delete { flex: none; }
+.account-card__delete:hover:not(:disabled) { color: var(--color-danger-fg); background: var(--color-danger-bg); }
+
+.account-form__name { grid-column: 1 / -1; }

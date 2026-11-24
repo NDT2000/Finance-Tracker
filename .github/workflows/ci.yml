@@ -1,0 +1,120 @@
+# Continuous integration: every pull request into main, and every push to main, must pass these
+# checks. No paid services or API keys are needed; only the automatic GITHUB_TOKEN is used.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push to the same branch or pull request cancels the run that is still going
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only by default; the one job that needs more asks for it explicitly
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend (lint, test, build, audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      # Fails on high or critical advisories in any installed package
+      - run: npm audit --audit-level=high
+
+  backend:
+    name: Backend (Spring Boot tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      # Unit and integration tests. Testcontainers starts real PostgreSQL and Redis containers
+      # using the runner's Docker.
+      - run: bash mvnw --batch-mode verify
+        working-directory: finance-tracker
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: backend-test-reports
+          path: finance-tracker/target/surefire-reports/
+
+  ml:
+    name: ML service (unit tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml-service
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'   # same as ml-service/Dockerfile
+          cache: pip
+          cache-dependency-path: ml-service/requirements.txt
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -p 'test_*.py' -v
+
+  secrets:
+    name: Secret scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # the whole history, not only the latest commit
+      # .gitleaksignore lists the two reviewed historical findings; anything new fails
+      - run: >
+          docker run --rm -v "$PWD:/repo:ro" ghcr.io/gitleaks/gitleaks:v8.24.2
+          git /repo --config /repo/.gitleaks.toml --gitleaks-ignore-path /repo/.gitleaksignore --redact
+
+  dependencies:
+    name: Dependency vulnerabilities (OSV-Scanner)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Free OSV database, no key. Java dependencies are covered by the dependency graph job below.
+      - run: >
+          docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.2.4
+          scan source
+          -L /src/frontend/package-lock.json
+          -L /src/ml-service/requirements.txt
+          -L /src/pipeline/requirements.txt
+
+  java-dependency-graph:
+    name: Java dependency graph (Dependabot alerts)
+    # Only for main: sends the full Maven dependency tree, including transitive libraries, to
+    # GitHub so Dependabot can raise security alerts for them
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # required by the dependency submission API
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: advanced-security/maven-dependency-submission-action@v6
+        with:
+          directory: finance-tracker

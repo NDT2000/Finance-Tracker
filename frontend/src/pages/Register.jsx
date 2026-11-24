@@ -2,97 +2,66 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authClient } from '../api/axios';
-import { styles } from './authStyles';
 import { homePath } from '../navigation';
-import { LogoMark } from '../components/Logo';
+import { registerErrors } from '../passwordRules';
+import AuthLayout from './auth/AuthLayout';
+
+const FIELDS = [
+    { key: 'fullName', label: 'Full name', type: 'text', autoComplete: 'name', maxLength: 100 },
+    { key: 'email', label: 'Email', type: 'email', autoComplete: 'email', maxLength: 254, placeholder: 'you@example.com' },
+    { key: 'password', label: 'Password', type: 'password', autoComplete: 'new-password', maxLength: 72, hint: 'At least 15 characters' },
+];
 
 export default function Register() {
-    const [fullName, setFullName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [form, setForm] = useState({ fullName: '', email: '', password: '' });
+    const [errors, setErrors] = useState({});
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [focused, setFocused] = useState('');
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+    async function submit(event) {
+        event.preventDefault();
         setError('');
+        const next = registerErrors(form);
+        setErrors(next);
+        if (Object.keys(next).length) return;
+        setLoading(true);
         try {
-            const response = await authClient.authenticate('/api/auth/register', {
-                fullName, email, password,
-            });
-            login(response.data.token, {
-                email: response.data.email,
-                fullName: response.data.fullName,
-            });
+            const { data } = await authClient.authenticate('/api/auth/register', { ...form, fullName: form.fullName.trim(), email: form.email.trim() });
+            login(data.token, { email: data.email, fullName: data.fullName });
             navigate(homePath);
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+            setError(err.response?.data?.message || 'Your account could not be created. Please try again.');
         } finally {
             setLoading(false);
         }
-    };
-
-    const field = (id, label, type, placeholder, value, setter) => (
-        <div style={styles.fieldWrap} key={id}>
-            <label style={styles.label}>{label}</label>
-            <input
-                style={{
-                    ...styles.input,
-                    ...(focused === id ? styles.inputFocused : {})
-                }}
-                type={type}
-                placeholder={placeholder}
-                value={value}
-                onChange={e => setter(e.target.value)}
-                onFocus={() => setFocused(id)}
-                onBlur={() => setFocused('')}
-                required
-            />
-        </div>
-    );
+    }
 
     return (
-        <div style={styles.page}>
-            <div style={styles.card}>
-                <div style={styles.logoWrap}>
-                    <LogoMark size={52} />
-                </div>
-
-                <h1 style={styles.title}>Create account</h1>
-                <p style={styles.subtitle}>Start tracking your finances today</p>
-
-                {error && (
-                    <div style={styles.errorBox}>
-                        <span>⚠</span> {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} style={styles.form}>
-                    {field('name', 'Full name', 'text', 'Nayan Taori', fullName, setFullName)}
-                    {field('email', 'Email', 'email', 'you@example.com', email, setEmail)}
-                    {field('password', 'Password', 'password', '•••••••• (min 15)', password, setPassword)}
-
-                    <button
-                        className="auth-btn"
-                        style={{
-                            ...styles.button,
-                            ...(loading ? styles.buttonLoading : {})
-                        }}
-                        type="submit"
-                        disabled={loading}>
-                        {loading ? 'Creating account...' : 'Create account →'}
-                    </button>
-                </form>
-
-                <p style={styles.footer}>
-                    Already have an account?{' '}
-                    <Link to="/login" style={styles.link}>Sign in</Link>
-                </p>
-            </div>
-        </div>
+        <AuthLayout title="Create account" subtitle="Start tracking your finances"
+            footer={<>Already have an account? <Link to="/login">Sign in</Link></>}>
+            <form className="auth__form" onSubmit={submit} noValidate>
+                {FIELDS.map(({ key, label, hint, ...input }) => {
+                    const id = `register-${key}`;
+                    const describedBy = errors[key] ? `${id}-error` : hint ? `${id}-hint` : undefined;
+                    return (
+                        <div className="field" key={key}>
+                            <label htmlFor={id}>{label}</label>
+                            <input id={id} {...input} value={form[key]} disabled={loading}
+                                aria-invalid={Boolean(errors[key])} aria-describedby={describedBy}
+                                onChange={e => { setForm(f => ({ ...f, [key]: e.target.value })); setErrors(x => ({ ...x, [key]: '' })); }} />
+                            {errors[key]
+                                ? <p className="field__error" id={`${id}-error`}>{errors[key]}</p>
+                                : hint && <p className="field__hint" id={`${id}-hint`}>{hint}</p>}
+                        </div>
+                    );
+                })}
+                {error && <p className="form-error" role="alert">{error}</p>}
+                <button type="submit" className="btn btn--primary auth__submit" disabled={loading}>
+                    {loading ? 'Creating account…' : 'Create account'}
+                </button>
+            </form>
+        </AuthLayout>
     );
 }

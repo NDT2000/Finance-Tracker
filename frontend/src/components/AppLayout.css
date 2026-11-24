@@ -13,7 +13,7 @@
 .skip-link {
     position: absolute; left: var(--space-4); top: -100px; z-index: 100;
     padding: var(--space-2) var(--space-4); border-radius: var(--radius-control);
-    background: var(--color-surface); color: var(--color-action); font-weight: 600;
+    background: var(--color-surface); color: var(--color-action-text); font-weight: 600;
 }
 .skip-link:focus { top: var(--space-4); outline: 3px solid var(--color-focus); }
 

@@ -40,3 +40,10 @@ export function shiftMonth(month, by) {
 export function formatAxisMoney(value, currency, { locale } = {}) {
     return new Intl.NumberFormat(locale, { style: 'currency', currency, notation: 'compact', maximumFractionDigits: 1 }).format(value);
 }
+
+// "Nov 24, 2026, 7:41 PM" for an ISO timestamp, or a dash when there is none.
+// locale and timeZone default to the viewer's; tests pass fixed values.
+export function formatDateTime(iso, locale, timeZone) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone });
+}
