@@ -96,6 +96,16 @@ public class CsvRows {
     return value;
   }
 
+  // DateTimeParseException is not an IllegalArgumentException, so left alone it would escape the
+  // row check and fail the whole batch. Convert it so only this row is rejected.
+  private static LocalDate date(String value) {
+    try {
+      return LocalDate.parse(value);
+    } catch (DateTimeException ex) {
+      throw new IllegalArgumentException("Date must be a real date in YYYY-MM-DD format");
+    }
+  }
+
   public Value value(Row row) {
     if (!row.consistent()) throw new IllegalArgumentException("Wrong column count");
     String amount = field(row, "amount", 30, true);
@@ -115,7 +125,7 @@ public class CsvRows {
       throw new IllegalArgumentException(
           "Refunds require their own source ID and an original expense source ID");
     return new Value(
-        LocalDate.parse(field(row, "date", 10, true)),
+        date(field(row, "date", 10, true)),
         field(row, "category", 100, true),
         field(row, "description", 255, true),
         money.amount(new BigDecimal(amount), currency),
