@@ -55,6 +55,8 @@ Reusable pieces live in `src/components/ui/`, styled by `ui.css` (tokens only):
 
 Buttons and fields are CSS classes, not components: `btn btn--primary|secondary|ghost|danger|icon`, and `field` around a label + input with optional `field__hint` / `field__error`.
 
+Data tables use the `ledger` / `ledger__table` classes in `ui.css` (Transactions and Imports). Give each cell a `data-label`: under 760px every row becomes a labelled card, keeping the table semantics for screen readers.
+
 Formatting lives in `src/format.js`: `formatMoney` (exact decimal strings, optional sign), `formatAxisMoney` (short chart-axis labels), `amountStep` (input step for a currency's decimals), `currentMonth`, `formatMonth`, `shiftMonth`. All are unit-tested in `tests/format.test.js`.
 
 Exact money arithmetic for small display calculations (such as a budget's remaining amount) lives in `src/money.js`: `subtractMoney` and `percentOf` work in whole minor units (BigInt), so `350 - 335.95` is exactly `14.05`. The backend remains authoritative for every stored or reported total. Tests: `tests/money.test.js`.
@@ -81,7 +83,14 @@ The rules live in `transactionRules.js`, unit-tested in `tests/transactionRules.
 
 Every projected figure (monthly balances, combined value, lowest cash, funding flags) is displayed from `GET /api/plans/{id}/projection`; the browser never recalculates them. `planningRules.js` (tested in `tests/planningRules.test.js`) only labels and packages: event types and their effects, plan-month to calendar-month mapping, request bodies, and the funding checks list. The page reproduces the hand-worked example in [financial planning](financial-planning.md). "Lowest cash" includes the opening cash, matching the backend's `minimumCash`.
 
-On screens under 760px the ledger table shows each row as a labelled card (`data-label` + CSS), keeping the table semantics for screen readers.
+**Import Transactions** (`src/pages/Imports.jsx`, parts in `src/pages/imports/`): CSV upload, import freshness, history, and the selected import with its rows. The selected import is in the URL (`/imports?batch=<id>`); "View import" on Transactions links straight to it. `useImports` loads history, the import's detail and one page of rows, plus freshness counts from the monthly summary's `imports` block (those counts cover all imports, whatever the month). It polls every 2 seconds only while an import is queued or processing.
+
+- The status badge comes from the backend status, so an import never reads as imported before processing has committed it. "Imported with rejections" and "Needs review" state partial success; outcome counts are shown only as the backend returns them.
+- Rows show their original values as uploaded. Rows that need review offer "Same as #id" for each exact match the backend found, "Keep as new" or "Ignore row".
+- "Rejected rows (CSV)" collects every rejected row and builds the report in the browser: reason, code and the original columns. Cells that start with `= + - @` get the same apostrophe guard as the backend's transaction export.
+- Stage, attempts, timings, error code, import ID and file hash sit in a collapsed "Processing details" section.
+
+`importRules.js` (tested in `tests/importRules.test.js`) holds the upload checks (mirroring [the CSV contract](pipeline/contract.md)), status and outcome labels, the result summary, error messages, the rejection report and the polling rule.
 
 **Component gallery:** run the dev server (`npm run dev` in `frontend/`) and open `http://localhost:5173/dev/components` to see every component and state. It exists only in development builds.
 
