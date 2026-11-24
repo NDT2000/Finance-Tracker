@@ -11,7 +11,6 @@
 .overview__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--space-4); align-items: start; }
 .overview__wide { grid-column: 1 / -1; }
 
-.overview__footnote { margin: var(--space-4) 0 0; font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; }
 .overview__inline-error { margin: 0; padding: var(--space-3) var(--space-4); border-radius: var(--radius-control); background: var(--color-danger-bg); color: var(--color-danger-strong); font-size: var(--text-sm); }
 .overview__badges { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
 

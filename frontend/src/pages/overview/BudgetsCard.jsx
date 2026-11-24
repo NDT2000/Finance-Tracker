@@ -11,7 +11,7 @@ function ForecastLine({ forecast, currency }) {
     const estimate = forecastView(forecast);
     if (estimate.state === 'none') return null;
     if (estimate.state === 'loading') return <p className="budget__forecast">Calculating forecast…</p>;
-    if (estimate.state === 'unavailable') return <p className="budget__forecast">Forecast unavailable right now. Your spending figures above are unaffected.</p>;
+    if (estimate.state === 'unavailable') return <p className="budget__forecast">Forecast unavailable</p>;
     return (
         <p className="budget__forecast">
             <span>
@@ -72,12 +72,6 @@ export default function BudgetsCard({ budgets, byCategory, forecasts, currency, 
                         );
                     })}
                 </ul>
-            )}
-            {showsForecasts && budgets.length > 0 && (
-                <p className="overview__footnote">
-                    Forecasts are estimates from this month&apos;s spending so far, using a simple trend model. Few
-                    transactions mean less reliable estimates.
-                </p>
             )}
             {budgets.length > 0 && (
                 <div className="overview__side-footer">

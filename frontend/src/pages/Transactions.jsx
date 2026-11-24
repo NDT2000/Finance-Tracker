@@ -209,10 +209,6 @@ export default function Transactions() {
                         </div>
                     )}
                 </>}
-                <p className="tx-footnote">
-                    Search and filters apply to the selected month. Imported entries are corrected by importing a higher
-                    source revision; excluded entries keep their source history and are not brought back by repeated imports.
-                </p>
             </section>
 
             <Modal open={dialog?.kind === 'add' || dialog?.kind === 'edit'} busy={busy} onClose={() => setDialog(null)}
@@ -230,7 +226,7 @@ export default function Transactions() {
             </Modal>
 
             <Modal open={dialog?.kind === 'export'} onClose={() => setDialog(null)} title="Download CSV report"
-                description="Your active ledger entries, for reviewing or sharing. Not the import file format.">
+                description={`${formatMonth(month)} · ${currency}`}>
                 <ExportForm accounts={data.accounts} month={month} currency={currency} onDone={() => setDialog(null)} />
             </Modal>
 

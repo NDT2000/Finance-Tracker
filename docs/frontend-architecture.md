@@ -36,6 +36,10 @@ Legacy token names at the bottom of the file keep not-yet-rebuilt pages working;
 
 **Page-to-layout communication:** the layout passes `{ setLogoutBlocked }` as outlet context. The profile page uses it (`useOutletContext()`) to keep Logout unavailable while a password change is saving.
 
+## Interface copy
+
+Cards, charts and tables show a precise label and the value, never an explanation of how the figure is calculated (no "income minus expenses" hints, model descriptions or rule footnotes). Short context is fine: the period ("November 2026"), a breakdown of actual values ("$2,009.39 spent, $0.00 refunded"), required qualifiers such as "Estimated" and "What-if scenario", chart legends, empty and error states, and consequences in confirmation dialogs. Questions about how figures are derived belong to the planned Ask AI assistant. Screen-reader chart summaries describe what a chart shows and stay.
+
 ## Shared components and formatting
 
 Reusable pieces live in `src/components/ui/`, styled by `ui.css` (tokens only):
@@ -72,6 +76,10 @@ The rules live in `transactionRules.js`, unit-tested in `tests/transactionRules.
 **Budgets** (`src/pages/Budgets.jsx`, parts in `src/pages/budgets/`): the month's budgets with actual spending, exact remaining amounts and the ML month-end estimate. Each card draws actual spending as a solid bar, the estimate as a striped, dashed-outline segment and the limit as a marker, with a legend. Colours follow the spec: red only when spending already exceeds the limit, amber at 80% or when projected over. "Spending without a budget" lists categories with spending but no limit. It reuses `useOverviewData` for its data.
 
 `budgetRules.js` (tested in `tests/budgetRules.test.js`) holds the shared calculations (status, tone, totals, bar segments, unbudgeted categories), used by both the Budgets page and the overview's budget card so they never disagree. Editing a limit sends the stored category, month, year and currency back because `PUT /api/budgets/{id}` validates a complete budget.
+
+**Financial planning** (`src/pages/Planning.jsx`, parts in `src/pages/planning/`): a scenario list beside the selected scenario's workspace (stacked below 1280px). The selected scenario is in the URL (`/planning?plan=<id>`), so reloads and bookmarks reopen it. Assumptions and events are edited in `Modal` dialogs; scenario and event deletion ask first. `usePlanningData` loads the list, the scenario, its events and the backend projection, ignoring responses for a scenario or comparison month the user has left.
+
+Every projected figure (monthly balances, combined value, lowest cash, funding flags) is displayed from `GET /api/plans/{id}/projection`; the browser never recalculates them. `planningRules.js` (tested in `tests/planningRules.test.js`) only labels and packages: event types and their effects, plan-month to calendar-month mapping, request bodies, and the funding checks list. The page reproduces the hand-worked example in [financial planning](financial-planning.md). "Lowest cash" includes the opening cash, matching the backend's `minimumCash`.
 
 On screens under 760px the ledger table shows each row as a labelled card (`data-label` + CSS), keeping the table semantics for screen readers.
 

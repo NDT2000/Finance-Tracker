@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { formatMonth } from '../../format';
 
 // Create a monthly category budget (POST /api/budgets) for the selected month and currency.
 // categories suggests names already used this month; the server rejects a duplicate category.
@@ -29,9 +28,6 @@ export default function BudgetForm({ month, currency, step, categories = [], ini
                         value={monthlyLimit} onChange={e => setMonthlyLimit(e.target.value)} required disabled={busy} />
                 </div>
             </div>
-            <p className="field__hint" style={{ marginTop: 'var(--space-3)' }}>
-                Applies to {formatMonth(month)} only. Spending in this category, minus refunds, is counted against it.
-            </p>
             {error && <p className="form-error" role="alert">{error}</p>}
             <div className="form-actions">
                 <button type="button" className="btn btn--secondary" onClick={onCancel} disabled={busy}>Cancel</button>

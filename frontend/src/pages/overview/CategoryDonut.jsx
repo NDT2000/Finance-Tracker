@@ -4,7 +4,7 @@ import ChartCard from '../../components/ui/ChartCard';
 import { EmptyState } from '../../components/ui/States';
 import { chartColors } from '../../chartColors';
 import { formatMoney } from '../../format';
-import { percentOf, subtractMoney, toMinorUnits, fromMinorUnits } from '../../money';
+import { percentOf, toMinorUnits, fromMinorUnits } from '../../money';
 
 const sliceColors = [chartColors.royalBlue, chartColors.emerald, chartColors.teal, chartColors.purple, chartColors.amber, chartColors.slate];
 const MAX_SLICES = 5;
@@ -17,7 +17,7 @@ function shareLabel(amount, total, digits) {
 
 // Net spending per category as a donut: the five largest categories, the rest grouped as "Other".
 // Categories whose refunds cancel their spending (net zero or less) are left out of the drawing.
-export default function CategoryDonut({ byCategory, netExpenses, currency, digits, periodLabel }) {
+export default function CategoryDonut({ byCategory, currency, digits, periodLabel }) {
     const positive = byCategory
         .filter(c => toMinorUnits(c.amount, digits) > 0n)
         .sort((a, b) => (toMinorUnits(b.amount, digits) > toMinorUnits(a.amount, digits) ? 1 : -1));
@@ -47,7 +47,6 @@ export default function CategoryDonut({ byCategory, netExpenses, currency, digit
     const largest = slices[0];
     const summary = `Spending by category for ${periodLabel}. Largest is ${largest.name} at ${money(largest.amount)}, `
         + `${shareLabel(largest.amount, totalShown, digits)} of ${money(totalShown)}. ${slices.length} categories shown.`;
-    const unshown = subtractMoney(netExpenses, totalShown, digits);
 
     return (
         <ChartCard title="Spending by category" description={periodLabel} summary={summary}>
@@ -73,11 +72,6 @@ export default function CategoryDonut({ byCategory, netExpenses, currency, digit
                     ))}
                 </ul>
             </div>
-            {toMinorUnits(unshown, digits) !== 0n && (
-                <p className="overview__footnote">
-                    Net expenses are {money(netExpenses)}; categories where refunds exceed spending are not drawn.
-                </p>
-            )}
         </ChartCard>
     );
 }

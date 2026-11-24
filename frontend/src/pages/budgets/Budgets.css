@@ -7,7 +7,6 @@
 }
 .budgets-notice span { flex: 1; }
 .budgets-notice .btn { min-height: 36px; color: var(--color-success-fg); }
-.budgets-footnote { margin: 0; font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.5; }
 
 /* Budget card */
 .budget-card { display: flex; flex-direction: column; gap: var(--space-3); border-top: 3px solid var(--color-action); }
