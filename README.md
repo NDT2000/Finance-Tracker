@@ -1,118 +1,113 @@
-# Finance Tracker 
+# Finance Tracker
 
-A full-stack personal finance application with ML-powered spend forecasting. Users track income and expenses, set category budgets, and receive month-end spending predictions with overspend warnings.
+[![CI](https://github.com/NDT2000/Finance-Tracker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/NDT2000/Finance-Tracker/actions/workflows/ci.yml)
 
-## Architecture
+A full-stack personal finance application: track income and expenses, set monthly category budgets with machine-learning month-end estimates, import bank CSV files reliably, and plan what-if scenarios for the months ahead.
 
-A microservice architecture with four containerized services:
+It is a personal and portfolio project, built to learn production-style engineering. It uses no paid services or API keys.
 
-- **Backend (Java / Spring Boot 3.2.5)** — REST API handling authentication, transactions, budgets, and forecast orchestration. Java 17.
-- **ML Service (Python / FastAPI)** — Linear-regression spend forecasting, called by the backend over HTTP.
-- **Frontend (React + Vite)** — Dashboard with Recharts visualizations, transaction/budget forms, and forecast display.
-- **Database (PostgreSQL 15)** — Persistent storage for users, transactions, and budgets.
+![Overview page with monthly net cash flow, income, net expenses and spending by category](frontend/public/landing/overview.webp)
 
-All services are orchestrated with Docker Compose, with an Nginx reverse proxy routing frontend traffic to the backend.
-
-## Contributions and suggestions
-
-Suggestions and bug reports are welcome through [GitHub Issues](https://github.com/NDT2000/Finance-Tracker/issues/new/choose). For code changes, fork the repository and submit a pull request to `main`; see [CONTRIBUTING.md](CONTRIBUTING.md). The owner reviews and manually merges accepted changes. [Maintainer settings and GitHub Pages feasibility](docs/github-contributions.md) explain the separate GitHub configuration required.
+<sub>Screens show sample data.</sub>
 
 ## Features
 
-Start with the [project learning guide](docs/learning-guide.md) for the completed goal, sample walkthrough, application features and concepts to learn.
+- **Overview:** monthly net cash flow, income and net expenses for one month and currency, spending by category, recent entries, budget status and import freshness.
+- **Transactions:** manual and imported income, expenses and refunds in one ledger. Filter by month, currency, type, account or source, and download any month as CSV.
+- **Budgets with ML forecasts:** a monthly limit per category with exact amounts spent and left. A Python model estimates each category's month-end spending and flags the ones projected to go over.
+- **Bank Accounts:** named account labels (type and currency) for grouping transactions. They are labels only, not live bank connections. Deleting one keeps its transactions' history.
+- **Import Transactions:** CSV upload with durable background processing. It shows partial success clearly (rejected rows with reasons, downloadable as a report) and includes duplicate and overlap review, source revisions, refunds, import history and freshness.
+- **Financial planning:** saved what-if scenarios over 1 to 36 months, with salary, spending, investment, loan and withdrawal events, cash-reserve and funding checks, and projections. Scenarios never touch the real ledger.
+- **Accounts and security:** JWT authentication with refresh-token rotation, BCrypt password hashing, rate-limited sign-in, per-user data isolation, and password changes that sign out every device.
+- **Interface:** a public landing page, responsive layouts from phone to desktop, light and dark themes, and WCAG 2.2 AA colour contrast checked by automated tests in both themes.
 
-- **Financial planning** — Saved monthly what-if scenarios for salary/income, spending, investments, loan repayments and withdrawals, with cash-reserve warnings and independent copies. [Guide and calculation example](docs/financial-planning.md).
+## Architecture
 
-- **Reliable batch imports** — Authenticated CSV upload, durable processing/history, rejected-row reports, manual-overlap review, source revisions and refunds. [Pipeline guide and evidence](docs/pipeline/README.md).
-- **Currency-aware monthly dashboard** — One canonical ledger for manual and imported entries, month/currency filters, exact totals and import freshness; existing forecasting and profile remain available.
-
-- **JWT authentication** — Stateless auth with BCrypt password hashing. Credentials sent in the request body (not query params).
-- **Transaction management** — Full CRUD with per-user data isolation and ownership checks.
-- **Budget tracking** — Set monthly budgets per category via the UI.
-- **ML spend forecasting** — For each budgeted category, the backend gathers the current month's expenses, calls the Python ML service, and returns a projected month-end total with an ON_TRACK / over-budget status.
-- **Consistent error handling** — Global `@RestControllerAdvice` returns structured JSON errors with proper HTTP status codes (400, 403, 404, 409, 500).
-- **Test suite** — JUnit/Mockito tests covering authentication, ownership/authorization, input validation, and forecast filtering.
-- **CI/CD** — GitHub Actions pipeline runs tests against a live PostgreSQL instance, then builds and pushes Docker images.
-
-## Tech Stack
-
-**Backend:** Java 17, Spring Boot, Spring Security, Spring Data JPA, JWT
-**ML:** Python, FastAPI, scikit-learn
-**Frontend:** React, Vite, Recharts, Axios
-**Database:** PostgreSQL 15
-**Infra:** Docker, Docker Compose, Nginx, GitHub Actions
-
-## Running Locally
-
-Configuration uses environment variables for secrets (`JWT_SECRET`, database credentials). Set these before running.
-
-### With Docker Compose (recommended)
-```bash
-# Create a .env file with JWT_SECRET and DB credentials, then:
-docker-compose up
+```mermaid
+flowchart LR
+    Browser -->|HTTP 80| Nginx
+    Nginx -->|static files| SPA[React app]
+    Nginx -->|/api| Backend[Spring Boot API]
+    Backend --> Postgres[(PostgreSQL 15)]
+    Backend --> Redis[(Redis)]
+    Backend -->|forecast requests| ML[FastAPI ML service]
 ```
 
-### Manually
-```bash
-# 1. Start PostgreSQL
-docker run --name finance-db -e POSTGRES_USER=<user> -e POSTGRES_PASSWORD=<password> -e POSTGRES_DB=financedb -p 5432:5432 -d postgres:15
+| Service | Technology | Role |
+|---|---|---|
+| Frontend | React 19, Vite, React Router, Recharts, Lucide icons | Single-page app built into static files and served by Nginx |
+| Nginx | Nginx | Serves the frontend, proxies `/api` to the backend, sets security headers (CSP and others). Optional TLS setup. |
+| Backend | Java 17, Spring Boot 3.2, Spring Security, Spring Data JPA, Flyway | REST API, authentication, ownership checks, financial calculations, import pipeline, forecast orchestration |
+| ML service | Python 3.11, FastAPI, scikit-learn | Month-end spending estimate per category, called by the backend over HTTP |
+| Database | PostgreSQL 15 | Users, transactions, budgets, bank-account labels, import batches and plans. Schema managed by Flyway migrations. |
+| Cache | Redis 7 | Sign-in rate limiting |
 
-# 2. Start the backend (from the backend directory)
-export JWT_SECRET=<your-secret>   # PowerShell: $env:JWT_SECRET="..."
-./mvnw spring-boot:run
+Everything runs with Docker Compose. Only Nginx is exposed.
 
-# 3. Start the ML service (from ml-service)
-uvicorn main:app --reload --port 8000
+## Getting started
 
-# 4. Start the frontend (from frontend)
-npm install
-npm run dev
+**Requirements:** Docker with Docker Compose.
+
+1. Create your private settings file from the example:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+   Fill in the values. `JWT_SECRET` must be at least 64 hexadecimal characters; generate one with:
+   ```powershell
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
+2. Build and start everything:
+   ```powershell
+   docker compose up -d --build
+   ```
+3. Open **http://localhost** and create an account. The backend needs a little while to start, so a `502` right after starting means "wait a moment".
+
+**Frontend development with hot reload:** `docker-compose.dev.yml` also exposes the backend (8080), ML service (8000), PostgreSQL (5432) and Redis (6379) on `127.0.0.1`. Start the stack with both files, then run the Vite dev server, which proxies `/api` to port 8080:
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+cd frontend; npm install; npm run dev
 ```
 
-## Bank-linked transactions and downloads
+Then open http://localhost:5173. If another PostgreSQL already uses port 5432 on your machine, stop it or use only the base file.
 
-Choose one of your saved bank accounts when adding an expense or income; refunds
-use their original expense's account. Recent entries can also be assigned to a
-bank without changing their financial values or import source history.
+## Tests and CI
 
-The dashboard's **Download transactions** section exports expenses, refunds and
-income as a CSV report, with optional month/currency/type/account filters. See
-[bank associations, migration and export contract](docs/bank-transactions-and-export.md).
-Back up existing data before the first V5 upgrade; existing transactions remain
-unassigned until an account is chosen.
+| Part | Command (from its folder) |
+|---|---|
+| Frontend | `npm run lint`, `npm test`, `npm run build` |
+| Backend | `./mvnw -B verify` (Docker must be running: integration tests start real PostgreSQL and Redis containers) |
+| ML service | `python -m unittest discover -p "test_*.py"` |
 
-## User profile
+GitHub Actions runs all of these on every pull request and push to `main`, along with a secret scan (Gitleaks) and dependency vulnerability checks (OSV-Scanner and Dependabot alerts). It needs no repository secrets. See [docs/ci.md](docs/ci.md).
 
-Sign in, then choose **My profile** in the dashboard header. The protected `/profile`
-page has two menu options:
+## Documentation
 
-- **Personal details:** read-only full name and email, plus password change. Name
-  updates are disabled on the server as well as in the UI.
-- **Bank accounts:** save multiple named account entries with type and currency;
-  delete an entry with confirmation. These are account labels, not live bank
-  connections. Deleting an entry preserves transactions and import history.
+| Document | What it covers |
+|---|---|
+| [Learning guide](docs/learning-guide.md) | Start here: how a record moves through the system, and the concepts used |
+| [Frontend architecture](docs/frontend-architecture.md) | Styling and themes, routing, shared components, each page |
+| [Design system](docs/design-system.md) | Product and design specification the interface follows |
+| [Financial planning](docs/financial-planning.md) | Planning engine with a hand-worked example |
+| [Import pipeline](docs/pipeline/README.md) | CSV contract, processing model, operations, verification |
+| [Bank transactions and export](docs/bank-transactions-and-export.md) | Account labels on transactions and the CSV report |
+| [CI](docs/ci.md) | Every CI job and how to run it locally |
+| [Security hardening](docs/security-hardening.md) and [SECURITY.md](SECURITY.md) | Security measures, production configuration, reporting a vulnerability |
+| [Refund type fix](docs/refund-type-fix.md) | A schema fix (Flyway V7) and the backup procedure used |
 
-Changing your password requires your current password, revokes all sessions, and
-returns you to sign-in. New passwords retain the existing 15-character minimum,
-72 UTF-8-byte maximum and common-password checks.
+## Roadmap
 
-`GET /api/profile` returns only name and email; `PUT /api/profile` is no longer
-supported. `GET/POST /api/accounts` and `DELETE /api/accounts/{id}` use the
-signed-in owner. Other users' records are never listed or deleted; names must be
-unique for that owner, ignoring case. No bank credentials or account numbers are
-stored by this page. The profile menu reuses existing tables; the transaction-bank association is
-added by Flyway V5.
+- **Done:** the full interface redesign (all pages, dark mode, accessibility) and the keyless CI pipeline.
+- **Next:** small backend fixes and a Spring Boot upgrade.
+- **Then:** **Ask AI**, an assistant that answers questions about your figures and how they are calculated, using open-source models that run locally. It never gets database access: facts come only from the existing authorized APIs. Without a model it still answers from a curated knowledge document.
+- **Later:** a free deployment for showcasing the project, and a guided walkthrough of the whole codebase.
 
-## Running Tests
-```bash
-./mvnw test
-```
+## Known limitations
 
-## Security Notes
+- The forecast model (linear regression on the current month) is deliberately simple; the project focuses on the architecture around it.
+- Editing a transaction whose bank account was deleted clears its historical account label. The form warns first; a backend fix is planned.
+- There is no public deployment yet.
 
-Secrets are managed via environment variables and are not committed to the repository. The `.env` file is gitignored.
+## Contributing
 
-## Known Limitations
-
-- Budget creation is available via the UI; some administrative operations are API-only.
-- The forecasting model (linear regression) is intentionally simple — the project's focus is the production architecture around the model rather than model sophistication.
+Suggestions and bug reports are welcome through [GitHub Issues](https://github.com/NDT2000/Finance-Tracker/issues/new/choose). For code changes, fork the repository and open a pull request to `main`; see [CONTRIBUTING.md](CONTRIBUTING.md). The owner reviews and merges changes manually.
